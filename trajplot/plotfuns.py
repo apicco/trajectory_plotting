@@ -30,14 +30,14 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 		x = ( x - x0 ) * x_scale
 		x_err = x_err * x_scale
 
-	lower_error_boundary =  transpose( [ t.t() , x - 1.96 * x_err ] )
-	upper_error_boundary =  transpose( [ t.t() , x + 1.96 * x_err ] )
+	lower_error_boundary =  transpose( [ t.t() - t0 , x - 1.96 * x_err ] )
+	upper_error_boundary =  transpose( [ t.t() - t0 , x + 1.96 * x_err ] )
 	error_boundary = concatenate( ( lower_error_boundary , upper_error_boundary[ ::-1 ] ) )
 
 	error_area = Polygon( error_boundary , True , color = col , alpha = 0.3 )
 	obj.add_patch( error_area )
 
 	#plot the trajectory
-	obj.plot( t.t() , x , linewidth = lw , linestyle = ls , color = col , label = label )
+	obj.plot( t.t() - t0 , x , linewidth = lw , linestyle = ls , color = col , label = label )
 
 
