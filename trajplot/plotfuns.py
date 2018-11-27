@@ -40,4 +40,29 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 	#plot the trajectory
 	obj.plot( t.t() - t0 , x , linewidth = lw , linestyle = ls , color = col , label = label )
 
+def plot_raw( obj , path , what , x_scale = 1 , x0 = 0 , t0 = 0 , which_coord = 0 ) :
+
+	files = os.listdir( path )
+
+	for fl in files :
+
+		t = Traj()
+		t.load( path + '/' + fl )
+		
+		x = getattr( t , '_' + what )
+		x_err = getattr( t , '_' + what + '_err' )
+	
+		if x.ndim > 1 : 
+	
+			#then the attribute has more than one dimention, which means it is coord and we are interested
+			#only in which_coord.
+			x = ( x[ which_coord ] - x0 ) * x_scale
+			x_err = x_err[ which_coord ] * x_scale
+	
+		else :
+	
+			x = ( x - x0 ) * x_scale
+			x_err = x_err * x_scale
+	
+		obj.plot( t.t() - t0 , x , '-' )
 
