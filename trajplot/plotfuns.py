@@ -1,5 +1,7 @@
+from trajalign.traj import Traj
 from numpy import transpose, concatenate
 from matplotlib.patches import Polygon
+import os
 
 def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 1.5 , ls = '-' , which_coord = 0 ) :
 
@@ -40,7 +42,7 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 	#plot the trajectory
 	obj.plot( t.t() - t0 , x , linewidth = lw , linestyle = ls , color = col , label = label )
 
-def plot_raw( obj , path , what , x_scale = 1 , x0 = 0 , t0 = 0 , which_coord = 0 ) :
+def plot_raw( obj , path , what , label , col = "#CDCDCD" , x0 = 0 , t0 = 0 ,  x_scale = 1 , lw = 0.5 , ls = '-' , which_coord = 0 , alpha = 1 ) :
 
 	files = os.listdir( path )
 
@@ -64,5 +66,5 @@ def plot_raw( obj , path , what , x_scale = 1 , x0 = 0 , t0 = 0 , which_coord = 
 			x = ( x - x0 ) * x_scale
 			x_err = x_err * x_scale
 	
-		obj.plot( t.t() - t0 , x , '-' )
+		obj.plot( t.t() - t0 , x , linewidth = lw , linestyle = ls , color = col , alpha = alpha )
 
