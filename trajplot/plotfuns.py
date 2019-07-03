@@ -43,7 +43,7 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 	#plot the trajectory
 	obj.plot( t.t() - t0 , x , linewidth = lw , linestyle = ls , color = col , label = label )
 
-def plot_raw( obj , path , what , label , col = "#CDCDCD" , x0 = 0 , t0 = 0 ,  x_scale = 1 , lw = 0.5 , ls = '-' , which_coord = 0 , alpha = 1 , dw = [ 0 , 0 ] ) :
+def plot_raw( obj , path , what , label , col = "#CDCDCD" , x0 = 0 , t0 = 0 ,  x_scale = 1 , lw = 0.5 , ls = '-' , which_coord = 0 , alpha = 1 , dw = None ) :
 
 	files = os.listdir( path )
 
@@ -59,15 +59,42 @@ def plot_raw( obj , path , what , label , col = "#CDCDCD" , x0 = 0 , t0 = 0 ,  x
 	
 			#then the attribute has more than one dimention, which means it is coord and we are interested
 			#only in which_coord.
-			dw_floats = []
-			dw_elements = [ f for f in re.split( '\[|\]|,' , dw ) ]   
-			for e in dw_elements :
-				try :
-					dw_floats.append( float( e ) )
-				except :
-					None
 
-			x = ( x[ which_coord ] - x0 + dw_floats[ which_coord ] ) * x_scale
+			if not dw : 
+				
+				dw_floats = []
+				dw_elements = [ f for f in re.split( '\[|\]|,' , dw.annotations( 'alignment_translation' ) ) ]
+					
+				for e in dw_elements :
+
+					try :
+
+						dw_floats.append( float( e ) )
+
+					except :
+
+						None
+	
+				cm_floats = []
+				cm_elements = [ f for f in re.split( '\[|\]|,' , dw.annotations( 'starting_center_mass' ) ) ]   
+					
+				for e in cm_elements :
+
+					try :
+
+						cm_floats.append( float( e ) )
+
+					except :
+
+						None
+				
+				print( 'sfda' )
+				x = ( x[ which_coord ] - x0 + dw_floats[ which_coord ] + cm_floats[ which_coord ] ) * x_scale
+
+			else :
+
+				x = ( x[ which_coord ] - x0 ) * x_scale
+
 			x_err = x_err[ which_coord ] * x_scale
 	
 		else :
