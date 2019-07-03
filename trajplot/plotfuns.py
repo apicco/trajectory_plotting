@@ -67,7 +67,7 @@ def plot_raw( obj , path , what , label , col = "#CDCDCD" , x0 = 0 , t0 = 0 ,  x
 				except :
 					None
 
-			x = ( x[ which_coord ] - x0 - dw_floats[ which_coord ] ) * x_scale
+			x = ( x[ which_coord ] - x0 + dw_floats[ which_coord ] ) * x_scale
 			x_err = x_err[ which_coord ] * x_scale
 	
 		else :
