@@ -53,17 +53,16 @@ def plot_raw( obj , path , what , label , col = "#CDCDCD" , x0 = 0 , t0 = 0 ,  x
 		t.load( path + '/' + fl )
 		
 		x = getattr( t , '_' + what )
-		x_err = getattr( t , '_' + what + '_err' )
 	
 		if x.ndim > 1 : 
 	
 			#then the attribute has more than one dimention, which means it is coord and we are interested
 			#only in which_coord.
 
-			if not dw : 
-				
+			if dw :
+
 				dw_floats = []
-				dw_elements = [ f for f in re.split( '\[|\]|,' , dw.annotations( 'alignment_translation' ) ) ]
+				dw_elements = [ f for f in re.split( '\[|\]|,' , dw.annotations()[ 'alignment_translation' ] ) ]
 					
 				for e in dw_elements :
 
@@ -76,8 +75,8 @@ def plot_raw( obj , path , what , label , col = "#CDCDCD" , x0 = 0 , t0 = 0 ,  x
 						None
 	
 				cm_floats = []
-				cm_elements = [ f for f in re.split( '\[|\]|,' , dw.annotations( 'starting_center_mass' ) ) ]   
-					
+				cm_elements = [ f for f in re.split( '\[|\]| ' , dw.annotations()[ 'starting_center_mass' ] ) ]   
+			
 				for e in cm_elements :
 
 					try :
@@ -87,20 +86,28 @@ def plot_raw( obj , path , what , label , col = "#CDCDCD" , x0 = 0 , t0 = 0 ,  x
 					except :
 
 						None
-				
-				print( 'sfda' )
-				x = ( x[ which_coord ] - x0 + dw_floats[ which_coord ] + cm_floats[ which_coord ] ) * x_scale
 
+				x = ( x[ which_coord ] -  cm_floats[ which_coord ] + dw_floats[ which_coord ] - x0 ) * x_scale
+
+				lag_elements = [ f for f in re.split( '\[|\]| ' , dw.annotations()[ 'alignment_lag' ] ) ]   
+			
+				for e in lag_elements :
+
+					try :
+
+						lag_float = float( e )
+
+					except :
+
+						None
+			
 			else :
 
 				x = ( x[ which_coord ] - x0 ) * x_scale
 
-			x_err = x_err[ which_coord ] * x_scale
-	
 		else :
 	
 			x = ( x - x0 ) * x_scale
-			x_err = x_err * x_scale
 	
-		obj.plot( t.t() - t0 , x , linewidth = lw , linestyle = ls , color = col , alpha = alpha )
+		obj.plot( t.t() - t0 + lag_float , x , linewidth = lw , linestyle = ls , color = col , alpha = alpha )
 
