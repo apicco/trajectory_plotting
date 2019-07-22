@@ -109,5 +109,5 @@ def plot_raw( obj , path , what , label , col = "#CDCDCD" , x0 = 0 , t0 = 0 ,  x
 	
 			x = ( x - x0 ) * x_scale
 	
-		obj.plot( t.t() - t0 + lag_float , x , linewidth = lw , linestyle = ls , color = col , alpha = alpha )
+		obj.plot( t.t() - t0 + lag_float , x , 'o' , color = col , alpha = 0.2 )
 
