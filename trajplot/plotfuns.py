@@ -89,17 +89,6 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 
 				x = ( x[ which_coord ] -  cm_floats[ which_coord ] + dw_floats[ which_coord ] - x0 ) * x_scale
 
-				lag_elements = [ f for f in re.split( '\[|\]| ' , dw.annotations()[ 'alignment_lag' ] ) ]   
-			
-				for e in lag_elements :
-
-					try :
-
-						lag_float = float( e )
-
-					except :
-
-						None
 			
 			else :
 
@@ -109,6 +98,18 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 	
 			x = ( x - x0 ) * x_scale
 	
+		lag_elements = [ f for f in re.split( '\[|\]| ' , dw.annotations()[ 'alignment_lag' ] ) ]   
+				
+		for e in lag_elements :
+	
+			try :
+	
+				lag_float = float( e )
+	
+			except :
+	
+				None
+		
 		obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha )
 
 	if ( dw != None ) & plot_dw :
