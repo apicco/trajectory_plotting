@@ -43,7 +43,7 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 	#plot the trajectory
 	obj.plot( t.t() - t0 , x , linewidth = lw , linestyle = ls , color = col , label = label )
 
-def plot_raw( obj , path , what , label , col = "#CDCDCD" , x0 = 0 , t0 = 0 ,  x_scale = 1 , lw = 0.5 , ls = '-' , which_coord = 0 , alpha = 1 , dw = None ) :
+def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , dw = None , l_col = "#000000" , d_col = "#FF0000" , lw = 1.2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_dw = True ) :
 
 	files = os.listdir( path )
 
@@ -109,5 +109,28 @@ def plot_raw( obj , path , what , label , col = "#CDCDCD" , x0 = 0 , t0 = 0 ,  x
 	
 			x = ( x - x0 ) * x_scale
 	
-		obj.plot( t.t() - t0 + lag_float , x , 'o' , color = col , alpha = 0.2 )
+		obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha )
+
+	if ( dw != None ) & plot_dw :
+	
+		x = getattr( dw , '_' + what )
+		x_err = getattr( dw , '_' + what + '_err' )
+
+		if x.ndim > 1 : 
+	
+			#then the attribute has more than one dimention, which means it is coord and we are interested
+			#only in which_coord.
+			x = ( x[ which_coord ] - x0 ) * x_scale
+			x_err = x_err[ which_coord ] * x_scale
+		
+		else :
+	
+			x = ( x - x0 ) * x_scale
+			x_err = x_err * x_scale
+
+		#plot the trajectory
+		obj.plot( dw.t() - t0 , x , linewidth = lw , linestyle = ls , color = l_col , label = label + " \naverage" , alpha = l_alpha )
+		obj.plot( dw.t() - t0 , x - 1.96 * x_err , linewidth = lw , linestyle = ls_err , color = l_col , label = label + " \n95% CI" , alpha = l_alpha )
+		obj.plot( dw.t() - t0 , x + 1.96 * x_err , linewidth = lw , linestyle = ls_err , color = l_col , alpha = l_alpha )
+	
 
