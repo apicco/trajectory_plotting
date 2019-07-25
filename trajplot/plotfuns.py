@@ -48,6 +48,7 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 	all_files = os.listdir( path )
 	files = [ f for f in all_files if ( 'alignment_precision' not in f ) & ( 'txt' in f ) ]
 
+	first_fl = True
 	for fl in files :
 
 		print( 'load raw trajectory: ' + fl )
@@ -112,8 +113,13 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 			except :
 	
 				None
-		
-		obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha )
+		if first_fl : 	
+			
+			obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha , label = label + '\nraw trajectories' )
+			first_fl = False
+		else :
+
+			obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha )
 
 	if ( dw != None ) & plot_dw :
 	
