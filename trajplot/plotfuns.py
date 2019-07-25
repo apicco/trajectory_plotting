@@ -46,9 +46,11 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , dw = None , l_col = "#000000" , d_col = "#FF0000" , lw = 1.2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_dw = True ) :
 
 	all_files = os.listdir( path )
-	files = [ f for f in all_files if 'alignment_precision' not in f ]
+	files = [ f for f in all_files if ( 'alignment_precision' not in f ) & ( 'txt' in f ) ]
 
 	for fl in files :
+
+		print( 'load raw trajectory: ' + fl )
 
 		t = Traj()
 		t.load( path + '/' + fl )
