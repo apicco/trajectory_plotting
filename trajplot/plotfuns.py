@@ -45,7 +45,8 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 
 def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , dw = None , l_col = "#000000" , d_col = "#FF0000" , lw = 1.2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_dw = True ) :
 
-	files = os.listdir( path )
+	all_files = os.listdir( path )
+	files = [ f for f in all_files if 'alignment_precision' not in f ]
 
 	for fl in files :
 
@@ -116,7 +117,7 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 	
 		x = getattr( dw , '_' + what )
 		x_err = getattr( dw , '_' + what + '_err' )
-
+		
 		if x.ndim > 1 : 
 	
 			#then the attribute has more than one dimention, which means it is coord and we are interested
