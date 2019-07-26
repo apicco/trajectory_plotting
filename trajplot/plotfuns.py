@@ -86,33 +86,39 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 
 			if average_trajectory :
 
-				at_floats = []
-				at_elements = [ f for f in re.split( '\[|\]|,' , average_trajectory.annotations()[ 'alignment_translation' ] ) ]
-					
-				for e in at_elements :
+				try :
 
-					try :
-
-						at_floats.append( float( e ) )
-
-					except :
-
-						None
+					at_floats = []
+					at_elements = [ f for f in re.split( '\[|\]|,' , average_trajectory.annotations()[ 'alignment_translation' ] ) ]
+						
+					for e in at_elements :
 	
-				cm_floats = []
-				cm_elements = [ f for f in re.split( '\[|\]| ' , average_trajectory.annotations()[ 'starting_center_mass' ] ) ]   
-			
-				for e in cm_elements :
+						try :
+	
+							at_floats.append( float( e ) )
+	
+						except :
+	
+							None
+		
+					cm_floats = []
+					cm_elements = [ f for f in re.split( '\[|\]| ' , average_trajectory.annotations()[ 'starting_center_mass' ] ) ]   
+				
+					for e in cm_elements :
+	
+						try :
+	
+							cm_floats.append( float( e ) )
+	
+						except :
+	
+							None
+	
+					x = ( x[ which_coord ] -  cm_floats[ which_coord ] + at_floats[ which_coord ] - x0 ) * x_scale
+					
+				except :
 
-					try :
-
-						cm_floats.append( float( e ) )
-
-					except :
-
-						None
-
-				x = ( x[ which_coord ] -  cm_floats[ which_coord ] + at_floats[ which_coord ] - x0 ) * x_scale
+					x = ( x[ which_coord ] - x0 ) * x_scale
 
 			
 			else :
@@ -122,18 +128,25 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 		else :
 	
 			x = ( x - x0 ) * x_scale
-	
-		lag_elements = [ f for f in re.split( '\[|\]| ' , average_trajectory.annotations()[ 'alignment_lag' ] ) ]   
-				
-		for e in lag_elements :
-	
-			try :
-	
-				lag_float = float( e )
-	
-			except :
-	
-				None
+
+		try :
+
+			lag_elements = [ f for f in re.split( '\[|\]| ' , average_trajectory.annotations()[ 'alignment_lag' ] ) ]   
+					
+			for e in lag_elements :
+		
+				try :
+		
+					lag_float = float( e )
+		
+				except :
+		
+					None
+
+		except :
+
+			lag_float = 0
+
 		if first_fl : 	
 			
 			obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha , label = label + '\nraw trajectories' )
