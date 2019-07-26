@@ -4,20 +4,8 @@ from matplotlib.patches import Polygon
 import os
 import re
 
-def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 1.5 , ls = '-' , which_coord = 0 ) :
-
-	"""
-	myplot( obj , t , what , label , col , lw = 1.5 , ls = '-' ) : plots
-	the attribute 'what' of the trajectory 't' in the matplotlib object 'obj'. It is 
-	possible to define a string label with 'label', a color with 'col', the line width 
-	with 'lw' ( default is lw = 1.5 ), and the linestyle with 'ls' ( default is ls = '-').
-	'ls' can have any of the following arguments:
-		'-' solid line
-		':' dotted line
-		'--' dashed line
-		'-.' dash/dotted line
-	"""
-		
+def get_values_from_track( t , what , x0 , x_scale , which_coord ) :
+	
 	x = getattr( t , '_' + what )
 	x_err = getattr( t , '_' + what + '_err' )
 
@@ -33,6 +21,24 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 		x = ( x - x0 ) * x_scale
 		x_err = x_err * x_scale
 
+	return x , x_err 
+
+def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 1.5 , ls = '-' , which_coord = 0 ) :
+
+	"""
+	myplot( obj , t , what , label , col , lw = 1.5 , ls = '-' ) : plots
+	the attribute 'what' of the trajectory 't' in the matplotlib object 'obj'. It is 
+	possible to define a string label with 'label', a color with 'col', the line width 
+	with 'lw' ( default is lw = 1.5 ), and the linestyle with 'ls' ( default is ls = '-').
+	'ls' can have any of the following arguments:
+		'-' solid line
+		':' dotted line
+		'--' dashed line
+		'-.' dash/dotted line
+	"""
+
+	x , x_err = get_values_from_track( t , what , x0 , x_scale , which_coord )
+
 	lower_error_boundary =  transpose( [ t.t() - t0 , x - 1.96 * x_err ] )
 	upper_error_boundary =  transpose( [ t.t() - t0 , x + 1.96 * x_err ] )
 	error_boundary = concatenate( ( lower_error_boundary , upper_error_boundary[ ::-1 ] ) )
@@ -43,7 +49,22 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 	#plot the trajectory
 	obj.plot( t.t() - t0 , x , linewidth = lw , linestyle = ls , color = col , label = label )
 
-def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , average_trajectory = None , l_col = "#000000" , d_col = "#FF0000" , lw = 1.2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_average_trajectory = True ) :
+def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , fg_lw = 1.5 , which_coord = 0 ) :
+
+	bg_lw = fg_lw * 1.5
+
+	x , x_err = get_values_from_track( t , what , x0 , x_scale , which_coord )
+
+	obj.plot( t.t() - t0 , x , linewidth = bg_lw , color = "#000000" )
+	obj.plot( t.t() - t0 , x , linewidth = fg_lw , color = col , label = label )
+	
+	obj.plot( t.t() - t0 , x + 1.96 * x_err , linewidth = bg_lw * 0.5 , color = "#000000" )
+	obj.plot( t.t() - t0 , x + 1.96 * x_err , linewidth = fg_lw * 0.5 , linestyle = '--' , color = col )
+
+	obj.plot( t.t() - t0 , x - 1.96 * x_err , linewidth = bg_lw * 0.5 , color = "#000000" )
+	obj.plot( t.t() - t0 , x - 1.96 * x_err , linewidth = fg_lw * 0.5 , linestyle = '--' , color = col )
+	
+def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , average_trajectory = None , l_col = "#000000" , d_col = "#FF0000" , lw = 2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_average_trajectory = True ) :
 
 	all_files = os.listdir( path )
 	files = [ f for f in all_files if ( 'alignment_precision' not in f ) & ( 'txt' in f ) ]
@@ -122,25 +143,6 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 			obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha )
 
 	if ( average_trajectory != None ) & plot_average_trajectory :
-	
-		x = getattr( average_trajectory , '_' + what )
-		x_err = getattr( average_trajectory , '_' + what + '_err' )
-		
-		if x.ndim > 1 : 
-	
-			#then the attribute has more than one dimention, which means it is coord and we are interested
-			#only in which_coord.
-			x = ( x[ which_coord ] - x0 ) * x_scale
-			x_err = x_err[ which_coord ] * x_scale
-		
-		else :
-	
-			x = ( x - x0 ) * x_scale
-			x_err = x_err * x_scale
 
-		#plot the trajectory
-		obj.plot( average_trajectory.t() - t0 , x , linewidth = lw , linestyle = ls , color = l_col , label = label + " \naverage" , alpha = l_alpha )
-		obj.plot( average_trajectory.t() - t0 , x - 1.96 * x_err , linewidth = lw , linestyle = ls_err , color = l_col , label = label + " \n95% CI" , alpha = l_alpha )
-		obj.plot( average_trajectory.t() - t0 , x + 1.96 * x_err , linewidth = lw , linestyle = ls_err , color = l_col , alpha = l_alpha )
-	
-
+		plot_average( obj , average_trajectory , what=what , label=label + "\naverage" , col=l_col , x0=x0 , t0=t0 , x_scale=x_scale , which_coord=which_coord , fg_lw = lw )
+			
