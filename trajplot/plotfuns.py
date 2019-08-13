@@ -24,7 +24,7 @@ def get_values_from_track( t , what , x0 , x_scale , which_coord ) :
 
 	return x , x_err 
 
-def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 1.5 , ls = '-' , which_coord = 0 ) :
+def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 1.5 , ls = '-' , which_coord = 0 , unify_start_end = True ) :
 
 	"""
 	myplot( obj , t , what , label , col , lw = 1.5 , ls = '-' ) : plots
@@ -38,6 +38,11 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 		'-.' dash/dotted line
 	"""
 
+	if unify_start_end :
+
+		t.start( unified_start( t ) )
+		t.end( unified_end( t ) )
+
 	x , x_err = get_values_from_track( t , what , x0 , x_scale , which_coord )
 
 	lower_error_boundary =  transpose( [ t.t() - t0 , x - 1.96 * x_err ] )
@@ -50,9 +55,14 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 	#plot the trajectory
 	obj.plot( t.t() - t0 , x , linewidth = lw , linestyle = ls , color = col , label = label )
 
-def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , fg_lw = 1.5 , which_coord = 0 ) :
+def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , fg_lw = 1.5 , which_coord = 0 , unif_start_end = True ) :
 
 	bg_lw = fg_lw * 1.5
+
+	if unify_start_end :
+
+		t.start( unified_start( t ) )
+		t.end( unified_end( t ) )
 
 	x , x_err = get_values_from_track( t , what , x0 , x_scale , which_coord )
 
@@ -65,7 +75,7 @@ def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 ,
 	obj.plot( t.t() - t0 , x - 1.96 * x_err , linewidth = bg_lw * 0.5 , color = "#000000" )
 	obj.plot( t.t() - t0 , x - 1.96 * x_err , linewidth = fg_lw * 0.5 , linestyle = '--' , color = col )
 	
-def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , average_trajectory = None , l_col = "#000000" , d_col = "#FF0000" , lw = 2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_average_trajectory = True , flip_around = False ) :
+def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , average_trajectory = None , l_col = "#000000" , d_col = "#FF0000" , lw = 2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_average_trajectory = True , flip_around = False , unify_start_end = True ) :
 
 	all_files = os.listdir( path )
 	files = [ f for f in all_files if ( 'alignment_precision' not in f ) & ( 'txt' in f ) ]
@@ -161,5 +171,5 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 
 	if ( average_trajectory != None ) & plot_average_trajectory :
 
-		plot_average( obj , average_trajectory , what=what , label=label + "\naverage" , col=l_col , x0=x0 , t0=t0 , x_scale=x_scale , which_coord=which_coord , fg_lw = lw )
+		plot_average( obj , average_trajectory , what=what , label=label + "\naverage" , col=l_col , x0=x0 , t0=t0 , x_scale=x_scale , which_coord=which_coord , fg_lw = lw , unify_start_end = unify_start_end )
 			
