@@ -56,7 +56,7 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 	#plot the trajectory
 	obj.plot( t.t() - t0 , x , linewidth = lw , linestyle = ls , color = col , label = label )
 
-def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , fg_lw = 1.5 , which_coord = 0 , unif_start_end = True ) :
+def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , fg_lw = 1.5 , which_coord = 0 , unify_start_end = True ) :
 
 	bg_lw = fg_lw * 1.5
 
