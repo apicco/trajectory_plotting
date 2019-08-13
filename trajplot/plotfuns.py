@@ -1,4 +1,5 @@
 from trajalign.traj import Traj
+from trajalign.average import unified_start, unified_end
 from numpy import transpose, concatenate
 from matplotlib.patches import Polygon
 import numpy as np
