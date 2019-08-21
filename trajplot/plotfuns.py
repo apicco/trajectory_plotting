@@ -174,8 +174,5 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 
 	if ( average_trajectory != None ) & plot_average_trajectory :
 
-		print( average_trajectory.f()[100] )
 		plot_average( obj , average_trajectory , what=what , label=label + "\naverage" , col=l_col , x0=x0 , t0=t0 , x_scale=x_scale , which_coord=which_coord , fg_lw = lw , unify_start_end = unify_start_end )
-		print( average_trajectory.f()[100] )
-		print(' AAAAAAAAA ' )
 
