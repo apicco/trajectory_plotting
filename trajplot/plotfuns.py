@@ -168,7 +168,7 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 			
 			if trajectory_number_in_legend : 
 				
-				obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha , label = label + ' n = ' + str( len( files ) ) + '\nraw trajectories' )
+				obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha , label = label + ', n = ' + str( len( files ) ) + '\nraw trajectories' )
 
 			else : 
 				
