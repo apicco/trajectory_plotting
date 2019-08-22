@@ -78,7 +78,7 @@ def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 ,
 	obj.plot( tt.t() - t0 , x - 1.96 * x_err , linewidth = bg_lw * 0.5 , color = "#000000" )
 	obj.plot( tt.t() - t0 , x - 1.96 * x_err , linewidth = fg_lw * 0.5 , linestyle = '--' , color = col )
 	
-def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , average_trajectory = None , l_col = "#000000" , d_col = "#FF0000" , lw = 2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_average_trajectory = True , flip_around = False , unify_start_end = True ) :
+def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , average_trajectory = None , l_col = "#000000" , d_col = "#FF0000" , lw = 2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_average_trajectory = True , flip_around = False , unify_start_end = True , trajectory_number_in_legend = False ) :
 
 	all_files = os.listdir( path )
 	files = [ f for f in all_files if ( 'alignment_precision' not in f ) & ( 'txt' in f ) ]
@@ -166,7 +166,14 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 
 		if first_fl : 	
 			
-			obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha , label = label + '\nraw trajectories' )
+			if trajectory_number_in_legend : 
+				
+				obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha , label = label + ' n = ' + str( len( files ) ) + '\nraw trajectories' )
+
+			else : 
+				
+				obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha , label = label + '\nraw trajectories' )
+			
 			first_fl = False
 		else :
 
