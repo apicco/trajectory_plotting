@@ -73,12 +73,22 @@ def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 ,
 	obj.plot( tt.t() - t0 , x , linewidth = fg_lw , color = col , label = label )
 	
 	obj.plot( tt.t() - t0 , x + 1.96 * x_err , linewidth = bg_lw * 0.5 , color = "#000000" )
-	obj.plot( tt.t() - t0 , x + 1.96 * x_err , linewidth = fg_lw * 0.5 , linestyle = '--' , color = col )
+	obj.plot( tt.t() - t0 , x + 1.96 * x_err , linewidth = fg_lw * 0.5 , linestyle = ( 0 , ( 5 , 5 ) ) , color = col )
 
 	obj.plot( tt.t() - t0 , x - 1.96 * x_err , linewidth = bg_lw * 0.5 , color = "#000000" )
-	obj.plot( tt.t() - t0 , x - 1.96 * x_err , linewidth = fg_lw * 0.5 , linestyle = '--' , color = col )
+	obj.plot( tt.t() - t0 , x - 1.96 * x_err , linewidth = fg_lw * 0.5 , linestyle = ( 0 , ( 5 , 5 ) ) , color = col )
 	
 def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , average_trajectory = None , l_col = "#000000" , d_col = "#FF0000" , lw = 2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_average_trajectory = True , flip_around = False , unify_start_end = True , trajectory_number_in_legend = False ) :
+
+	if len( label ) == 0 :
+
+		label_raw = ''
+		label_average = ''
+
+	else :
+
+		label_raw = label + '\n'
+		label_average = label + '\n'
 
 	all_files = os.listdir( path )
 	files = [ f for f in all_files if ( 'alignment_precision' not in f ) & ( 'txt' in f ) ]
@@ -168,11 +178,11 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 			
 			if trajectory_number_in_legend : 
 				
-				obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha , label = label + ', n = ' + str( len( files ) ) + '\nraw trajectories' )
+				obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha , label = label_raw + 'n = ' + str( len( files ) ) + ' raw trajectories' )
 
 			else : 
 				
-				obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha , label = label + '\nraw trajectories' )
+				obj.plot( t.t() - t0 + lag_float , x , 'o' , color = d_col , alpha = d_alpha , label = label_raw + 'raw trajectories' )
 			
 			first_fl = False
 		else :
@@ -181,5 +191,5 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 
 	if ( average_trajectory != None ) & plot_average_trajectory :
 
-		plot_average( obj , average_trajectory , what=what , label=label + "\naverage" , col=l_col , x0=x0 , t0=t0 , x_scale=x_scale , which_coord=which_coord , fg_lw = lw , unify_start_end = unify_start_end )
+		plot_average( obj , average_trajectory , what=what , label=label_average + "average" , col=l_col , x0=x0 , t0=t0 , x_scale=x_scale , which_coord=which_coord , fg_lw = lw , unify_start_end = unify_start_end )
 
