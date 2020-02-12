@@ -226,7 +226,6 @@ def trajectories_on_movie( movie_path , output_path , tls , cmaps , scale = np.n
 	if ( scale == scale ) & ( len( scale_unit ) == 0 ) :
 
 		print( 'define the unit after the application of the scaling factor ')
-		break 
 
 	if len( tls ) == len( cmaps ) :
 		
@@ -241,7 +240,7 @@ def trajectories_on_movie( movie_path , output_path , tls , cmaps , scale = np.n
 			
 			for i in range( len( tls ) ) :
 
-				plot_traj( tls[ i ] , f , cmap = cmaps[ i ] , scale , shift , ms = marker_size , lw = line_width )
+				plot_traj( tls[ i ] , f , scale , shift , cmap = cmaps[ i ] , ms = marker_size , lw = line_width )
 
 			if not scale == scale :
 
@@ -257,4 +256,3 @@ def trajectories_on_movie( movie_path , output_path , tls , cmaps , scale = np.n
 	else :
 
 		print( 'Specify as many cmaps as there are trajectory lists' )
-		break 
