@@ -2,6 +2,7 @@ from trajalign.traj import Traj
 from trajalign.average import unified_start, unified_end
 from numpy import transpose, concatenate
 from matplotlib.patches import Polygon
+from matplotlib import pyplot as plt
 import numpy as np
 import os
 import re
@@ -193,3 +194,67 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 
 		plot_average( obj , average_trajectory , what=what , label=label_average + "average" , col=l_col , x0=x0 , t0=t0 , x_scale=x_scale , which_coord=which_coord , fg_lw = lw , unify_start_end = unify_start_end )
 
+def trajectories_on_movie( movie_path , output_path , tls , cmaps , scale = np.nan , scale_unit = '' , shift = [ 0 , 0 ] , figsize = ( 10, 8 ) , movie_cmap = 'gray' , marker_size = 3 , line_width = 1 ) : # tls = trajectory_lists , cmaps = colormaps )
+	
+	def plot_traj( tt , f , cmap , scale , shift , ms , lw ) :
+
+		l = len( tt ) 
+		for i in range( l ) :
+
+			c = cmap( i / l )
+
+			t = tt [ i ]
+
+			if ( f >= t.frames()[ 0 ] ) & ( f <= t.frames()[ -1 ] ) :
+
+				#select the part of the trajectory to be drawn on the movie
+				selected_frames = list( range( t.frames()[ 0 ] , f + 1 ) )
+				sel = [ i for i in range( len( selected_frames ) ) if selected_frames[ i ] in t.frames() ]
+				u = t.extract( sel )
+
+				if scale == scale : 
+
+					plt.plot( u.coord()[ 1 ] * scale + shift[ 0 ] , u.coord()[ 0 ] * scale - shift[ 1 ] , 'o' , color = c , markersize = ms )
+					plt.plot( u.coord()[ 1 ] * scale + shift[ 0 ] , u.coord()[ 0 ] * scale - shift[ 1 ] , '-' , color = c , linewidth = lw )
+				else : 
+
+					plt.plot( u.coord()[ 1 ] + shift[ 0 ] , u.coord()[ 0 ] - shift[ 1 ] , 'o' , color = c , markersize = ms )
+					plt.plot( u.coord()[ 1 ] + shift[ 0 ] , u.coord()[ 0 ] - shift[ 1 ] , '-' , color = c , linewidth = lw )
+
+	#--------------------------------------------------
+
+	if ( scale == scale ) & ( len( scale_unit ) == 0 ) :
+
+		print( 'define the unit after the application of the scaling factor ')
+		break 
+
+	if len( tls ) == len( cmaps ) :
+		
+		im = tiff.imread( movie_path )
+		
+		for f in range( len( im ) ) :
+
+			frameName = output_path + 'frame' + '%03dr' % f 
+			output = plt.figure( 1 , figsize = figsize )
+
+			plt.imshow( im[ f , : , : ] , cmap = movie_cmap )
+			
+			for i in range( len( tls ) ) :
+
+				plot_traj( tls[ i ] , f , cmap = cmaps[ i ] , scale , shift , ms = marker_size , lw = line_width )
+
+			if not scale == scale :
+
+				plt.xlabel( 'Pixel' )
+				plt.ylabel( 'Pixel' )
+
+			else :
+				
+				plt.xlabel( scale_unit )
+				plt.ylable( scale_unit )
+
+			plt.savefig( output_path + frameName )
+	else :
+
+		print( 'Specify as many cmaps as there are trajectory lists' )
+		break 
