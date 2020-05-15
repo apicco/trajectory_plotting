@@ -29,7 +29,6 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 	- comment_char is a comment character which might be present in the trajectories.
 	- coord_unit is pixel ('pxl') as default. 
 	To do not bias the experimenter the trajectory position within the cell is not shown (compatibly with "r").
-	The order by which trajectories are shown is randomized.
 	"""
 
 	# v is a dict of variables containing all the relevant variables that need to be passed to the 
@@ -184,6 +183,7 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 			"- <Left> and <Right> arrows navigate you within the spot frames\n" + \
 			"- the <Up> arrow annotates the trajectory as 'Selected' and saves it in\n" + path_raw_trajectories + "/Selected/\n" +\
 			"- the <Down> arrow annotates the trajectory as 'Rejected' and saves it in\n" + path_raw_trajectories + "/Rejected/\n\n"
+			"- the <BackSpace> undo the last selection/rejection and annotate the log"
 	loading = "LOADING trajectories ASSIGNING their dataset ID..."
 	loaded = "trajectories are loaded and assigned to their dataset ID.\n-> PRESS <space> TO CONTINUE <-"
 	
