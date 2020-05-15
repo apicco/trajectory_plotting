@@ -84,7 +84,8 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 		ax.imshow( 
 				im[ int( v[ "frame" ] ) , 
 					int( -v[ "r" ] + c[0] ) : int( c[0] + v[ "r" ] ) , 
-					int(-v[ "r" ] + c[1] ) : int( c[1] + v[ "r" ] ) ] 
+					int(-v[ "r" ] + c[1] ) : int( c[1] + v[ "r" ] ) ] ,
+				cmap = 'grey' 
 				)
 
 		ax.set_xlabel( "Pixels" )
@@ -182,8 +183,8 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 			+ "COMMANDS:\n" + \
 			"- <Left> and <Right> arrows navigate you within the spot frames\n" + \
 			"- the <Up> arrow annotates the trajectory as 'Selected' and saves it in\n" + path_raw_trajectories + "/Selected/\n" +\
-			"- the <Down> arrow annotates the trajectory as 'Rejected' and saves it in\n" + path_raw_trajectories + "/Rejected/\n\n"
-			"- the <BackSpace> undo the last selection/rejection and annotate the log"
+			"- the <Down> arrow annotates the trajectory as 'Rejected' and saves it in\n" + path_raw_trajectories + "/Rejected/\n" +\
+			"- the <BackSpace> undo the last selection/rejection and annotate the log\n\n"
 	loading = "LOADING trajectories ASSIGNING their dataset ID..."
 	loaded = "trajectories are loaded and assigned to their dataset ID.\n-> PRESS <space> TO CONTINUE <-"
 	
