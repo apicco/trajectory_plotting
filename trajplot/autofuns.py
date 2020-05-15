@@ -47,7 +47,7 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 		t.annotations()[ 'dataset' ] 
 		return
 
-	def GUI_plot( tt , v , df ) : # show the frame
+	def GUI_plot( tt , df ) : # show the frame
 		
 		# select the trajctory
 		t = tt[ v[ 'j' ] ]
@@ -57,55 +57,53 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 		im = tiff.imread( v[ 'path_movies' ] + '/' + movie_name )
 	
 		# identify which centroid coordinate to associate with the frame
-		c = [ np.nan , np.nan ]
 		# start with nan centroid, centroid coordines must not be nan, therefore
 		# search for the first not nan and increment i "frame" accordingly
+		c = [ np.nan , np.nan ]
+		v_frame_old = v[ 'frame' ]  # used to stall the movie in case v[ "frame" ] reaches
+									# frame_min, frame_max, or movie length
 		while c[ 0 ] != c[ 0 ] :
 
-			i = v[ "frame" ] - v[ "frame_min" ] # trajectory element
-			c = [ t.coord()[ 0 ][ i ] , t.coord()[ 1 ][ i ] ] # centroid coordinate
 			v[ "frame" ] = v[ "frame" ] + df
+			i = v[ "frame" ] - v[ "frame_min" ] # trajectory element
+			if ( 
+					( v[ "frame" ] >= v[ "frame_min" ] ) & 
+					(  v[ "frame" ] <= v[ "frame_max" ] ) & 
+					( v[ "frame" ] < len( im ) ) 
+				) : # check that we do not exceed frame_min, frame_max, and movie length
+				
+					c = [ t.coord()[ 0 ][ i ] , t.coord()[ 1 ][ i ] ] # centroid coordinate
 
-		if v[ "frame" ] < len( im ) : # check that we do not exceed movie length
-			ax.clear()
-			ax.imshow( 
-					im[ int( v[ "frame" ] ) , 
-						int( -v[ "r" ] + c[0] ) : int( c[0] + v[ "r" ] ) , 
-						int(-v[ "r" ] + c[1] ) : int( c[1] + v[ "r" ] ) ] 
-					)
-	
-			ax.set_xlabel( "Pixels" )
-			ax.set_ylabel( "Pixels" )
-			ax.set_title( 'Trajectory frame ' + str( i ) )
-			canvas.draw()
-		else :
-			# if v[ "frame" ] exceeds movie length then reset it to its
-			# previous value to stall the movie play
-			v[ "frame" ] = v[ "frame" ] - 1
-	
-	def LeftKey( event , tt , v ) :
+			else :
 
-		df = -1 #frame increment to the left in case of nan 	
-		v[ "frame" ] = v[ "frame" ] - 1
-		
-		if ( ( v[ "frame" ] >= v[ "frame_min" ] ) & (  v[ "frame" ] <= v[ "frame_max" ] ) ) :
-			GUI_plot( tt , v , df ) 
-		else :
-			# restore the previous value for v[ "frame" ]
-			v[ "frame" ] = v[ "frame" ] + 1
-
+				v[ "frame" ] = v_frame_old 
+				i = v[ "frame" ] - v[ "frame_min" ] # trajectory element
+				c = [ t.coord()[ 0 ][ i ] , t.coord()[ 1 ][ i ] ] # centroid coordinate
+				break
 			
-	def RightKey( event , tt , v ) :
+		ax.clear()
+		ax.imshow( 
+				im[ int( v[ "frame" ] ) , 
+					int( -v[ "r" ] + c[0] ) : int( c[0] + v[ "r" ] ) , 
+					int(-v[ "r" ] + c[1] ) : int( c[1] + v[ "r" ] ) ] 
+				)
+
+		ax.set_xlabel( "Pixels" )
+		ax.set_ylabel( "Pixels" )
+		ax.set_title( 'Trajectory frame ' + str( i ) )
+		canvas.draw()
+	
+	def LeftKey( event , tt ) :
+		
+		df = -1 #frame increment to the left in case of nan 	
+		GUI_plot( tt , df ) 
+			
+	def RightKey( event , tt ) :
 
 		df = 1  #frame increment to the right in case of nan	
-		v[ "frame" ] = v[ "frame" ] + 1
-		if ( ( v[ "frame" ] >= v[ "frame_min" ] ) & (  v[ "frame" ] <= v[ "frame_max" ] ) ) :
-			GUI_plot( tt , v , df ) 
-		else :
-			# restore the previous value for v[ "frame" ]
-			v[ "frame" ] = v[ "frame" ] - 1
+		GUI_plot( tt , df ) 
 			
-	def UpKey( event , tt , v , path , f ) :
+	def UpKey( event , tt , path , f ) :
 		
 		# select the trajctory
 		t = tt[ v[ 'j' ] ]
@@ -124,9 +122,9 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 			# move to the next trajectory
 			v[ 'j' ] = v[ 'j' ] + 1 
 			Update_v( tt )
-			GUI_plot( tt , v , 1 )
+			GUI_plot( tt , 1 )
 
-	def DownKey( event , tt , v , path , f ) :
+	def DownKey( event , tt , path , f ) :
 		
 		# select the trajctory
 		t = tt[ v[ 'j' ] ]
@@ -145,7 +143,7 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 			# move to the next trajectory
 			v[ 'j' ] = v[ 'j' ] + 1 
 			Update_v( tt )
-			GUI_plot( tt , v , 1 )
+			GUI_plot( tt , 1 )
 
 	def ExitHeader( event ) :
 
@@ -155,13 +153,27 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 
 		v[ "frame_min" ] = np.nanmin( tt[ v[ 'j' ] ].frames() )
 		v[ "frame_max" ] = np.nanmax( tt[ v[ 'j' ] ].frames() ) 
-		v[ "frame" ] = v[ "frame_min" ]
+		v[ "frame" ] = v[ "frame_min" ] - 1 # the -1 because Update_v is used before 
+											# plotting the first frame of a spot.
+											# Plotting is done with GUI_plot that does 
+											# df increments of magnitude +/- 1. As the 
+											# first frame can have nan coordinates, it 
+											# is important to use GUI_plot( tt , 1 ) instead
+											# of GUI_plot( tt , -1 ). Hence the -1 here.
 
-	def BackKey( event , path ) :
+	def BackKey( event , tt , path_sel , path_rej ) :
 
-		print( v[ 'j' ] )
-		v[ 'j' ] = v[ 'j' ] - 1
-		print( v[ 'j' ] )
+		if v[ 'j' ] > 0 :
+
+			v[ 'j' ] = v[ 'j' ] - 1
+			try : 
+				os.remove( path_sel + '/' + tt[ v[ 'j' ] ].annotations()[ 'file' ] )
+			except :
+				os.remove( path_rej + '/' + tt[ v[ 'j' ] ].annotations()[ 'file' ] )
+			print( tt[ v[ 'j' ] ].annotations()[ 'file' ] + '-undo-' )
+			
+			Update_v( tt )
+			GUI_plot( tt , 1 )
 
 	HeaderWindow = tk.Tk() # create a Tkinter window
 	HeaderWindow.wm_title( 'icheck' )
@@ -226,12 +238,12 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 	ax = fig.add_subplot( 111 )
 	
 	canvas = FigureCanvasTkAgg( fig , master = SpotWindow )  # A tk.DrawingArea.
-	GUI_plot( tt , v , 1 )
+	GUI_plot( tt , 1 )
 	canvas.get_tk_widget().pack( side = tk . TOP , fill=tk.BOTH , expand = 1 )
 
-	SpotWindow.bind( "<Left>" , lambda event , tt = tt  , v=v : LeftKey( event , tt , v ) )
-	SpotWindow.bind( "<Right>" , lambda event , tt = tt , v=v : RightKey( event , tt , v ) )
-	SpotWindow.bind( "<Up>" , lambda event , tt = tt , v=v , path = ps , f = f : UpKey( event , tt , v , path , f ) )
-	SpotWindow.bind( "<Down>" , lambda event , tt = tt , v=v , path = pr , f = f : DownKey( event , tt , v , path , f ) )
-	SpotWindow.bind( "<BackSpace>" , lambda event , v=v , path = pr : BackKey( event , path ) )
+	SpotWindow.bind( "<Left>" , lambda event , tt = tt : LeftKey( event , tt ) )
+	SpotWindow.bind( "<Right>" , lambda event , tt = tt : RightKey( event , tt ) )
+	SpotWindow.bind( "<Up>" , lambda event , tt = tt , path = ps , f = f : UpKey( event , tt , path , f ) )
+	SpotWindow.bind( "<Down>" , lambda event , tt = tt , path = pr , f = f : DownKey( event , tt , path , f ) )
+	SpotWindow.bind( "<BackSpace>" , lambda event , tt = tt , path_sel = ps , path_rej = pr : BackKey( event , tt , path_sel , path_rej ) )
 	SpotWindow.mainloop()
