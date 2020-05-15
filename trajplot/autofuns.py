@@ -85,7 +85,7 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 				im[ int( v[ "frame" ] ) , 
 					int( -v[ "r" ] + c[0] ) : int( c[0] + v[ "r" ] ) , 
 					int(-v[ "r" ] + c[1] ) : int( c[1] + v[ "r" ] ) ] ,
-				cmap = 'grey' 
+				cmap = 'gray' 
 				)
 
 		ax.set_xlabel( "Pixels" )
