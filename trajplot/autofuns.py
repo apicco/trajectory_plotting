@@ -12,7 +12,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib.backend_bases import key_press_handler
 
-def icheck( path_raw_trajectories , path_movies , path_datasets , r = 7 , frame_col = 0 , coord_col = ( 2 , 3 ) , comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' ) :
+def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , frame_col = 0 , coord_col = ( 2 , 3 ) , comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' ) :
 	"""
 	icheck(  path_raw_trajectories , path_movies , r = 5 , frame_col = 0 , coord_col = ( 2 , 3 ) , 
 		comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' ) : , load the trajectories in path_trajectories 
@@ -32,17 +32,6 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 7 , frame_
 	To do not bias the experimenter the trajectory position within the cell is not shown (compatibly with "r").
 	"""
 
-	# v is a dict of variables containing all the relevant variables that need to be passed to the 
-	# binding functions in tk. You should think of i as a list of pointers. i includes
-	# "frame" : the current frame shown in the GUI
-	# "frame_min" : the min frame value that can be shown, for that given trajectory. When a trajectory is 
-	#				shown for the first time then i["frame"] = i["frame_min"]
-	# "frame_max" : the max frame value that can be shown, for that given trajectory
-	# "j" : the trajectory id in the trajectory list
-	# "r" : the crop radius
-	
-	v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , path_movies = path_movies )
-
 	def load_image( t ) : # load the spot image corresponding to the trajectory t
 		t.annotations()[ 'dataset' ] 
 		return
@@ -54,7 +43,17 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 7 , frame_
 		
 		# load the rigth movie
 		movie_name = t.annotations()[ 'dataset' ][ 5 : -4 ] + '.tif'
-		im = tiff.imread( v[ 'path_movies' ] + '/' + movie_name )
+		if v[ "path_movies" ] :
+			
+			im = tiff.imread( v[ 'path_movies' ] + '/' + movie_name )
+		
+		elif v[ "path_movie" ] : 
+
+			im = tiff.imread( v[ 'path_movie' ] )
+
+		else :
+
+			raise AttributeError( 'Verify that path_movie, to a single movie tif file, or path_movies, to a folder containing one or more movie tif files, are correct' )
 
 		# identify which centroid coordinate to associate with the frame
 		# start with nan centroid, centroid coordines must not be nan, therefore
@@ -200,13 +199,35 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 7 , frame_
 			frames = frame_col , 
 			coord = coord_col )
 
-	print( 'assigning dataset ID...' )
-	for i in range( len( tt ) ) :
-		if 'dataset' not in tt[ i ].annotations().keys() :
-			tt[ i ].assign_datasetID( path_datasets )
-			tt[ i ].save( path_raw_trajectories + '/' + tt[ i ].annotations()[ 'file' ] )
-	print( '...dataset ID assigned' )
+	# v is a dict of variables containing all the relevant variables that need to be passed to the 
+	# binding functions in tk. You should think of i as a list of pointers. i includes
+	# "frame" : the current frame shown in the GUI
+	# "frame_min" : the min frame value that can be shown, for that given trajectory. When a trajectory is 
+	#				shown for the first time then i["frame"] = i["frame_min"]
+	# "frame_max" : the max frame value that can be shown, for that given trajectory
+	# "j" : the trajectory id in the trajectory list
+	# "r" : the crop radius
 
+	if path_movie : 
+	
+		v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , path_movies = '' , path_movie = path_movie )
+
+	else :
+		
+		v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , path_movies = path_movies , path_movie = '' )
+
+	if not path_movie :
+
+		print( 'assigning dataset ID...' )
+		
+		for i in range( len( tt ) ) :
+			
+			if 'dataset' not in tt[ i ].annotations().keys() :
+				tt[ i ].assign_datasetID( path_datasets )
+				tt[ i ].save( path_raw_trajectories + '/' + tt[ i ].annotations()[ 'file' ] )
+		
+		print( '...dataset ID assigned' )
+	
 	l = tk.Label( HeaderWindow , text = header + loaded )
 	l.pack()
 	
