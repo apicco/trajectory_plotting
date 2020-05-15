@@ -91,7 +91,7 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 
 		ax.set_xlabel( "Pixels" )
 		ax.set_ylabel( "Pixels" )
-		ax.set_title( 'Trajectory frame ' + str( i ) )
+		ax.set_title( 'Trajectory frame ' + str( i ) + '/' + str( v[ "frame_max" ] - v[ "frame_min" ] ) )
 		canvas.draw()
 	
 	def LeftKey( event , tt ) :
