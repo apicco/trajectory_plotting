@@ -1,6 +1,7 @@
 import os
 import tkinter as tk
 import numpy as np
+from  matplotlib.colors import Normalize as norm
 from skimage.external import tifffile as tiff
 from trajalign.traj import Traj
 from trajalign.average import load_directory
@@ -11,7 +12,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib.backend_bases import key_press_handler
 
-def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_col = 0 , coord_col = ( 2 , 3 ) , comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' ) :
+def icheck( path_raw_trajectories , path_movies , path_datasets , r = 7 , frame_col = 0 , coord_col = ( 2 , 3 ) , comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' ) :
 	"""
 	icheck(  path_raw_trajectories , path_movies , r = 5 , frame_col = 0 , coord_col = ( 2 , 3 ) , 
 		comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' ) : , load the trajectories in path_trajectories 
@@ -54,7 +55,7 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 		# load the rigth movie
 		movie_name = t.annotations()[ 'dataset' ][ 5 : -4 ] + '.tif'
 		im = tiff.imread( v[ 'path_movies' ] + '/' + movie_name )
-	
+
 		# identify which centroid coordinate to associate with the frame
 		# start with nan centroid, centroid coordines must not be nan, therefore
 		# search for the first not nan and increment i "frame" accordingly
@@ -81,11 +82,12 @@ def icheck( path_raw_trajectories , path_movies , path_datasets , r = 5 , frame_
 				break
 			
 		ax.clear()
-		ax.imshow( 
+		ax.imshow(	# +1 in centroid positions is to center the spot in the quadrant. 
+					#I suspect probem between PT and python nomenclatures (one starts at 1 the other at 0) 
 				im[ int( v[ "frame" ] ) , 
-					int( -v[ "r" ] + c[0] ) : int( c[0] + v[ "r" ] ) , 
-					int(-v[ "r" ] + c[1] ) : int( c[1] + v[ "r" ] ) ] ,
-				cmap = 'gray' 
+					int( -v[ "r" ] + c[0] + 1 ) : int( c[0] + 1 + v[ "r" ] ) , 
+					int(-v[ "r" ] + c[1] + 1 ) : int( c[1] + 1 + v[ "r" ] ) ] ,
+				cmap = 'gray'  , norm = norm(  vmin = np.amin( im ) , vmax = np.amax( im ) )
 				)
 
 		ax.set_xlabel( "Pixels" )
