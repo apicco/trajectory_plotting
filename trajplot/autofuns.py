@@ -12,7 +12,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib.backend_bases import key_press_handler
 
-def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , frame_col = 0 , coord_col = ( 2 , 3 ) , comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' ) :
+def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , frame_col = 0 , coord_col = ( 2 , 3 ) , comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' , cmap = 'gray' ) :
 	"""
 	icheck(  path_raw_trajectories , path_movies , r = 5 , frame_col = 0 , coord_col = ( 2 , 3 ) , 
 		comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' ) : , load the trajectories in path_trajectories 
@@ -32,29 +32,11 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 	To do not bias the experimenter the trajectory position within the cell is not shown (compatibly with "r").
 	"""
 
-	def load_image( t ) : # load the spot image corresponding to the trajectory t
-		t.annotations()[ 'dataset' ] 
-		return
-
 	def GUI_plot( tt , df ) : # show the frame
-		
+
 		# select the trajctory
 		t = tt[ v[ 'j' ] ]
 		
-		# load the rigth movie
-		movie_name = t.annotations()[ 'dataset' ][ 5 : -4 ] + '.tif'
-		if v[ "path_movies" ] :
-			
-			im = tiff.imread( v[ 'path_movies' ] + '/' + movie_name )
-		
-		elif v[ "path_movie" ] : 
-
-			im = tiff.imread( v[ 'path_movie' ] )
-
-		else :
-
-			raise AttributeError( 'Verify that path_movie, to a single movie tif file, or path_movies, to a folder containing one or more movie tif files, are correct' )
-
 		# identify which centroid coordinate to associate with the frame
 		# start with nan centroid, centroid coordines must not be nan, therefore
 		# search for the first not nan and increment i "frame" accordingly
@@ -68,7 +50,7 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 			if ( 
 					( v[ "frame" ] >= v[ "frame_min" ] ) & 
 					(  v[ "frame" ] <= v[ "frame_max" ] ) & 
-					( v[ "frame" ] < len( im ) ) 
+					( v[ "frame" ] < len( v[ 'image' ] ) ) 
 				) : # check that we do not exceed frame_min, frame_max, and movie length
 				
 					c = [ t.coord()[ 0 ][ i ] , t.coord()[ 1 ][ i ] ] # centroid coordinate
@@ -79,21 +61,23 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 				i = v[ "frame" ] - v[ "frame_min" ] # trajectory element
 				c = [ t.coord()[ 0 ][ i ] , t.coord()[ 1 ][ i ] ] # centroid coordinate
 				break
-			
+		
 		ax.clear()
-		ax.imshow(	# +1 in centroid positions is to center the spot in the quadrant. 
-					#I suspect probem between PT and python nomenclatures (one starts at 1 the other at 0) 
-				im[ int( v[ "frame" ] ) , 
+
+		# Plot image. Note: +1 in centroid positions is to center the spot in the quadrant. 
+		# I suspect probem between PT and python nomenclatures 
+		# (one starts at 1 the other at 0) 
+		ax.imshow(	
+				v[ 'image' ][ int( v[ "frame" ] ) , 
 					int( -v[ "r" ] + c[0] + 1 ) : int( c[0] + 1 + v[ "r" ] ) , 
 					int(-v[ "r" ] + c[1] + 1 ) : int( c[1] + 1 + v[ "r" ] ) ] ,
-				cmap = 'gray'  , norm = norm(  vmin = np.amin( im ) , vmax = np.amax( im ) )
+				cmap = v[ 'cmap' ]  , norm = norm(  vmin = np.amin( v[ 'image' ] ) , vmax = np.amax( v[ 'image' ] ) )
 				)
-
 		ax.set_xlabel( "Pixels" )
 		ax.set_ylabel( "Pixels" )
 		ax.set_title( 'Trajectory frame ' + str( i ) + '/' + str( v[ "frame_max" ] - v[ "frame_min" ] ) )
 		canvas.draw()
-	
+
 	def LeftKey( event , tt ) :
 		
 		df = -1 #frame increment to the left in case of nan 	
@@ -117,14 +101,18 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 		print( s_log )
 			
 		if v[ 'j' ] == ( len( tt ) - 1 ) :
+
 			f.close()
 			SpotWindow.destroy()
+
 		else :
+			
 			# move to the next trajectory
 			v[ 'j' ] = v[ 'j' ] + 1 
 			Update_v( tt )
+			
 			GUI_plot( tt , 1 )
-
+		
 	def DownKey( event , tt , path , f ) :
 		
 		# select the trajctory
@@ -151,6 +139,25 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 		HeaderWindow.destroy()
 
 	def Update_v( tt ) :
+	
+		# select the trajctory
+		t = tt[ v[ 'j' ] ]
+		
+		# load the rigth movie
+		movie_name = t.annotations()[ 'dataset' ][ 5 : -4 ] + '.tif'
+		if v[ "path_movies" ] :
+			
+			im = tiff.imread( v[ 'path_movies' ] + '/' + movie_name )
+		
+		elif v[ "path_movie" ] : 
+
+			im = tiff.imread( v[ 'path_movie' ] )
+
+		else :
+
+			raise AttributeError( 'Verify that path_movie, to a single movie tif file, or path_movies, to a folder containing one or more movie tif files, are correct' )
+
+		v[ 'image' ] = im
 
 		v[ "frame_min" ] = np.nanmin( tt[ v[ 'j' ] ].frames() )
 		v[ "frame_max" ] = np.nanmax( tt[ v[ 'j' ] ].frames() ) 
@@ -171,11 +178,11 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 				os.remove( path_sel + '/' + tt[ v[ 'j' ] ].annotations()[ 'file' ] )
 			except :
 				os.remove( path_rej + '/' + tt[ v[ 'j' ] ].annotations()[ 'file' ] )
-			print( tt[ v[ 'j' ] ].annotations()[ 'file' ] + '-undo-' )
+			print( tt[ v[ 'j' ] ].annotations()[ 'file' ] + '\t-undo-' )
 			
 			Update_v( tt )
 			GUI_plot( tt , 1 )
-
+		
 	HeaderWindow = tk.Tk() # create a Tkinter window
 	HeaderWindow.wm_title( 'icheck' )
 
@@ -210,11 +217,11 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 
 	if path_movie : 
 	
-		v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , path_movies = '' , path_movie = path_movie )
+		v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , cmap = cmap , path_movies = '' , path_movie = path_movie )
 
 	else :
 		
-		v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , path_movies = path_movies , path_movie = '' )
+		v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , cmap = cmap , path_movies = path_movies , path_movie = '' )
 
 	if not path_movie :
 
@@ -257,12 +264,13 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 	SpotWindow.wm_title( 'icheck' )
 
 	Update_v( tt )
-	
+
 	fig = Figure( figsize = (  5 , 4 ) , dpi = 100 )
 	ax = fig.add_subplot( 111 )
-	
 	canvas = FigureCanvasTkAgg( fig , master = SpotWindow )  # A tk.DrawingArea.
+
 	GUI_plot( tt , 1 )
+
 	canvas.get_tk_widget().pack( side = tk . TOP , fill=tk.BOTH , expand = 1 )
 
 	SpotWindow.bind( "<Left>" , lambda event , tt = tt : LeftKey( event , tt ) )
@@ -270,4 +278,5 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 	SpotWindow.bind( "<Up>" , lambda event , tt = tt , path = ps , f = f : UpKey( event , tt , path , f ) )
 	SpotWindow.bind( "<Down>" , lambda event , tt = tt , path = pr , f = f : DownKey( event , tt , path , f ) )
 	SpotWindow.bind( "<BackSpace>" , lambda event , tt = tt , path_sel = ps , path_rej = pr : BackKey( event , tt , path_sel , path_rej ) )
+
 	SpotWindow.mainloop()
