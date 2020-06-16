@@ -13,10 +13,10 @@ from matplotlib.figure import Figure
 from matplotlib.backend_bases import key_press_handler
 
 # TODO, modify icheck so that the list of trajectories is inputed and not created within icheck (tt). That will give more flexibility!
-def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , frame_col = 0 , coord_col = ( 2 , 3 ) , comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' , cmap = 'gray' ) :
+def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output_trajectories = './' ) :
 	"""
-	icheck(  path_raw_trajectories , path_movies , r = 5 , frame_col = 0 , coord_col = ( 2 , 3 ) , 
-		comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' ) : , load the trajectories in path_trajectories 
+	icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' ) :
+		load the trajectories in path_trajectories 
 	and show how they look like in their respective movies listed in path_movies, by showing a crop of 
 	radius "r" around their centroid positoin. 
 	If .annotations()[ 'datasetID' ] isn't there, the trajectories are mapped to their respective movies 
@@ -25,7 +25,6 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 	rejected are also annotated ( .annotations()[ "icheck_stamp" ] , which can be either "selected" or "rejected" ) 
 	and are saved in two subfolders: "Selected_*" and "Rejected_*". The * is a number that will be updated if
 	these subfolders are already present.
-	- frame_col and coord_col are the column numbers where the frame and coordinate values are to be found 
 	in the trajectory files.
 	- pattern is a pattern present in the file names, used to load the trajectories (load_directory input).
 	- comment_char is a comment character which might be present in the trajectories.
@@ -68,12 +67,16 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 		# Plot image. Note: +1 in centroid positions is to center the spot in the quadrant. 
 		# I suspect probem between PT and python nomenclatures 
 		# (one starts at 1 the other at 0) 
+		
 		ax.imshow(	
 				v[ 'image' ][ int( v[ "frame" ] ) , 
 					int( -v[ "r" ] + c[0] + 1 ) : int( c[0] + 1 + v[ "r" ] ) , 
 					int(-v[ "r" ] + c[1] + 1 ) : int( c[1] + 1 + v[ "r" ] ) ] ,
 				cmap = v[ 'cmap' ]  , norm = norm(  vmin = np.amin( v[ 'image' ] ) , vmax = np.amax( v[ 'image' ] ) )
 				)
+		ax.plot( [ 0 , 2 * v[ "r" ] - 0.5 ] , [ c[1] - int( -v[ "r" ] + c[1] + 1 ) , c[1] - int( -v[ "r" ] + c[1] + 1 ) ] , color = 'red' , linestyle = '--' , linewidth = 0.5 )
+		ax.plot( [ c[0] - int( -v[ "r" ] + c[0] + 1 ) , c[0] - int( -v[ "r" ] + c[0] + 1 ) ] , [ 0 , 2 * v[ "r" ] - 0.5 ] , color = 'red' , linestyle = '--' , linewidth = 0.5 )
+ 
 		ax.set_xlabel( "Pixels" )
 		ax.set_ylabel( "Pixels" )
 		ax.set_title( 'Trajectory frame ' + str( i ) + '/' + str( v[ "frame_max" ] - v[ "frame_min" ] ) )
@@ -188,25 +191,16 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 	HeaderWindow.wm_title( 'icheck' )
 
 	# define and show a welcome header with command instructions
-	header = "Welcome to icheck! You are going to asses the quality \n of the spots used to derive the trajectories in \n" + path_raw_trajectories + "\n\n " \
+	header = "Welcome to icheck! You are going to asses the quality \n of the spots used to derive the trajectory list input " \
 			+ "COMMANDS:\n" + \
 			"- <Left> and <Right> arrows navigate you within the spot frames\n" + \
-			"- the <Up> arrow annotates the trajectory as 'Selected' and saves it in\n" + path_raw_trajectories + "/Selected/\n" +\
-			"- the <Down> arrow annotates the trajectory as 'Rejected' and saves it in\n" + path_raw_trajectories + "/Rejected/\n" +\
+			"- the <Up> arrow annotates the trajectory as 'Selected' and saves it in\n" + path_output_trajectories + "/Selected/\n" +\
+			"- the <Down> arrow annotates the trajectory as 'Rejected' and saves it in\n" + path_output_trajectories + "/Rejected/\n" +\
 			"- the <BackSpace> undo the last selection/rejection and annotate the log\n\n"
 	loading = "LOADING trajectories ASSIGNING their dataset ID..."
 	loaded = "trajectories are loaded and assigned to their dataset ID.\n-> PRESS <space> TO CONTINUE <-"
 	
 	
-	print( 'load trajectories...' )
-	tt = load_directory(
-			path = path_raw_trajectories , 
-			pattern = pattern ,
-			comment_char = comment_char , 
-			coord_unit = coord_unit , 
-			frames = frame_col , 
-			coord = coord_col )
-
 	# v is a dict of variables containing all the relevant variables that need to be passed to the 
 	# binding functions in tk. You should think of i as a list of pointers. i includes
 	# "frame" : the current frame shown in the GUI
@@ -232,7 +226,7 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 			
 			if 'dataset' not in tt[ i ].annotations().keys() :
 				tt[ i ].assign_datasetID( path_datasets )
-				tt[ i ].save( path_raw_trajectories + '/' + tt[ i ].annotations()[ 'file' ] )
+				tt[ i ].save( path_output_trajectories + '/' + tt[ i ].annotations()[ 'file' ] )
 		
 		print( '...dataset ID assigned' )
 	
@@ -247,8 +241,8 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 	# Spot selection can be done multiple times to asses its 
 	# robustness. If the Selected and Rejected folders exist already, then their name
 	# is complemented with an iterated number.
-	ps = path_raw_trajectories + '/Selected_0'
-	pr = path_raw_trajectories + '/Rejected_0' 
+	ps = path_output_trajectories + '/Selected_0'
+	pr = path_output_trajectories + '/Rejected_0' 
 	pi = 0
 	while ( os.path.exists( ps ) | os.path.exists( pr ) ) :
 
