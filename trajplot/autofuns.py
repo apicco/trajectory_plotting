@@ -12,6 +12,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib.backend_bases import key_press_handler
 
+# TODO, modify icheck so that the list of trajectories is inputed and not created within icheck (tt). That will give more flexibility!
 def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , frame_col = 0 , coord_col = ( 2 , 3 ) , comment_char = '#' , pattern = '.txt$' , coord_unit = 'pxl' , cmap = 'gray' ) :
 	"""
 	icheck(  path_raw_trajectories , path_movies , r = 5 , frame_col = 0 , coord_col = ( 2 , 3 ) , 
@@ -61,7 +62,7 @@ def icheck( path_raw_trajectories , path_movies = '' , path_datasets = '' , path
 				i = v[ "frame" ] - v[ "frame_min" ] # trajectory element
 				c = [ t.coord()[ 0 ][ i ] , t.coord()[ 1 ][ i ] ] # centroid coordinate
 				break
-		
+	
 		ax.clear()
 
 		# Plot image. Note: +1 in centroid positions is to center the spot in the quadrant. 
