@@ -218,24 +218,6 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 		
 		v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , cmap = cmap , path_movies = path_movies , path_movie = '' )
 
-	if not path_movie :
-
-		print( 'assigning dataset ID...' )
-		
-		for i in range( len( tt ) ) :
-			
-			if 'dataset' not in tt[ i ].annotations().keys() :
-				tt[ i ].assign_datasetID( path_datasets )
-				tt[ i ].save( path_output_trajectories + '/' + tt[ i ].annotations()[ 'file' ] )
-		
-		print( '...dataset ID assigned' )
-	
-	l = tk.Label( HeaderWindow , text = header + loaded )
-	l.pack()
-	
-	HeaderWindow.bind( '<space>' , ExitHeader )
-	HeaderWindow.mainloop()
-
 	# --------------------------------------------------- #
 
 	# Spot selection can be done multiple times to asses its 
@@ -243,6 +225,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	# is complemented with an iterated number.
 	ps = path_output_trajectories + '/Selected_0'
 	pr = path_output_trajectories + '/Rejected_0' 
+	pd = path_output_trajectories + '/FullDataset'
 	pi = 0
 	while ( os.path.exists( ps ) | os.path.exists( pr ) ) :
 
@@ -251,7 +234,28 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 		pi += 1
 
 	os.makedirs( ps )
-	os.makedirs( pr ) 
+	os.makedirs( pr )
+	if not os.path.exists( pd ) : 
+		os.makedirs( pd )
+
+	if not path_movie :
+
+		print( 'assigning dataset ID...' )
+		
+		for i in range( len( tt ) ) :
+			
+			if 'dataset' not in tt[ i ].annotations().keys() :
+				tt[ i ].assign_datasetID( path_datasets )
+				tt[ i ].save( pd + '/' + tt[ i ].annotations()[ 'file' ] )
+		
+		print( '...dataset ID assigned' )
+	
+	# --------------------------------------------------- #
+	l = tk.Label( HeaderWindow , text = header + loaded )
+	l.pack()
+	
+	HeaderWindow.bind( '<space>' , ExitHeader )
+	HeaderWindow.mainloop()
 
 	f = open( ps + '/icheck_log.txt' , 'w+' )
 
