@@ -13,7 +13,7 @@ from matplotlib.figure import Figure
 from matplotlib.backend_bases import key_press_handler
 
 # TODO, modify icheck so that the list of trajectories is inputed and not created within icheck (tt). That will give more flexibility!
-def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output_trajectories = './' ) :
+def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' ) :
 	"""
 	icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' ) :
 		load the trajectories in path_trajectories 
@@ -194,8 +194,8 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	header = "Welcome to icheck! You are going to asses the quality \n of the spots used to derive the trajectory list input " \
 			+ "COMMANDS:\n" + \
 			"- <Left> and <Right> arrows navigate you within the spot frames\n" + \
-			"- the <Up> arrow annotates the trajectory as 'Selected' and saves it in\n" + path_output_trajectories + "/Selected/\n" +\
-			"- the <Down> arrow annotates the trajectory as 'Rejected' and saves it in\n" + path_output_trajectories + "/Rejected/\n" +\
+			"- the <Up> arrow annotates the trajectory as 'Selected' and saves it in\n" + path_output + "/Selected/\n" +\
+			"- the <Down> arrow annotates the trajectory as 'Rejected' and saves it in\n" + path_output + "/Rejected/\n" +\
 			"- the <BackSpace> undo the last selection/rejection and annotate the log\n\n"
 	loading = "LOADING trajectories ASSIGNING their dataset ID..."
 	loaded = "trajectories are loaded and assigned to their dataset ID.\n-> PRESS <space> TO CONTINUE <-"
@@ -223,9 +223,9 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	# Spot selection can be done multiple times to asses its 
 	# robustness. If the Selected and Rejected folders exist already, then their name
 	# is complemented with an iterated number.
-	ps = path_output_trajectories + '/Selected_0'
-	pr = path_output_trajectories + '/Rejected_0' 
-	pd = path_output_trajectories + '/FullDataset'
+	ps = path_output + '/Selected_0'
+	pr = path_output + '/Rejected_0' 
+	pd = path_output + '/FullDataset'
 	pi = 0
 	while ( os.path.exists( ps ) | os.path.exists( pr ) ) :
 
