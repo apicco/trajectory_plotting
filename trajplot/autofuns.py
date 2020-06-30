@@ -66,11 +66,16 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 		# Plot image. Note: +1 in centroid positions is to center the spot in the quadrant. 
 		# I suspect probem between PT and python nomenclatures 
 		# (one starts at 1 the other at 0) 
+	
+		xlims = [ max( 0 , int( -v[ "r" ] + c[0] + 1 ) ) ,
+			min( int( c[0] + 1 + v[ "r" ] ) , len( v[ 'image'][ 0 , 1 , : ] ) - 1 ) ]
+		ylims = [ max( 0 , int( -v[ "r" ] + c[1] + 1 ) ) ,
+			min( int( c[1] + 1 + v[ "r" ] ) , len( v[ 'image'][ 0 , : , 1 ] ) - 1 ) ]
 		
 		ax.imshow(	
 				v[ 'image' ][ int( v[ "frame" ] ) , 
-					int( -v[ "r" ] + c[0] + 1 ) : int( c[0] + 1 + v[ "r" ] ) , 
-					int(-v[ "r" ] + c[1] + 1 ) : int( c[1] + 1 + v[ "r" ] ) ] ,
+				xlims[0] : xlims[1] , 
+				ylims[0] : ylims[1] ], 
 				cmap = v[ 'cmap' ]  , norm = norm(  vmin = np.amin( v[ 'image' ] ) , vmax = np.amax( v[ 'image' ] ) )
 				)
 		ax.plot( [ 0 , 2 * v[ "r" ] - 0.5 ] , [ c[1] - int( -v[ "r" ] + c[1] + 1 ) , c[1] - int( -v[ "r" ] + c[1] + 1 ) ] , color = 'red' , linestyle = '--' , linewidth = 0.5 )
@@ -89,6 +94,18 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	def RightKey( event , tt ) :
 
 		df = 1  #frame increment to the right in case of nan	
+		GUI_plot( tt , df )
+
+	def ZoomOut( event , tt ) :
+		
+		v[ "r" ] = v[ "r" ] + 1
+		df = 0
+		GUI_plot( tt , df ) 
+
+	def ZoomIn( event , tt ) :
+		
+		v[ "r" ] = v[ "r" ] - 1
+		df = 0
 		GUI_plot( tt , df ) 
 			
 	def UpKey( event , tt , path , f ) :
@@ -277,4 +294,6 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	SpotWindow.bind( "<Down>" , lambda event , tt = tt , path = pr , f = f : DownKey( event , tt , path , f ) )
 	SpotWindow.bind( "<BackSpace>" , lambda event , tt = tt , path_sel = ps , path_rej = pr : BackKey( event , tt , path_sel , path_rej ) )
 
+	SpotWindow.bind( "-" , lambda event , tt = tt : ZoomOut( event , tt ) )
+	SpotWindow.bind( "+" , lambda event , tt = tt : ZoomIn( event , tt ) )
 	SpotWindow.mainloop()
