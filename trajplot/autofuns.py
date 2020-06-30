@@ -212,7 +212,8 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 			"- <Left> and <Right> arrows navigate you within the spot frames\n" + \
 			"- the <Up> arrow annotates the trajectory as 'Selected' and saves it in\n" + path_output + "/Selected/\n" +\
 			"- the <Down> arrow annotates the trajectory as 'Rejected' and saves it in\n" + path_output + "/Rejected/\n" +\
-			"- the <BackSpace> undo the last selection/rejection and annotate the log\n\n"
+			"- the <BackSpace> undo the last selection/rejection and annotate the log\n" +\
+			"- the <+> and <-> zoom in and out the image\n\n"
 	loading = "LOADING trajectories ASSIGNING their dataset ID..."
 	loaded = "trajectories are loaded and assigned to their dataset ID.\n-> PRESS <space> TO CONTINUE <-"
 	
