@@ -273,7 +273,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	HeaderWindow.bind( '<space>' , ExitHeader )
 	HeaderWindow.mainloop()
 
-	f = open( ps + '/icheck_log.txt' , 'w+' )
+	f = open( path_output + '/icheck_log_' + pi + '.txt' , 'w+' )
 
 	SpotWindow = tk.Tk()
 	SpotWindow.wm_title( 'icheck' )
@@ -293,7 +293,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	SpotWindow.bind( "<Up>" , lambda event , tt = tt , path = ps , f = f : UpKey( event , tt , path , f ) )
 	SpotWindow.bind( "<Down>" , lambda event , tt = tt , path = pr , f = f : DownKey( event , tt , path , f ) )
 	SpotWindow.bind( "<BackSpace>" , lambda event , tt = tt , path_sel = ps , path_rej = pr : BackKey( event , tt , path_sel , path_rej ) )
-
 	SpotWindow.bind( "-" , lambda event , tt = tt : ZoomOut( event , tt ) )
 	SpotWindow.bind( "+" , lambda event , tt = tt : ZoomIn( event , tt ) )
+	
 	SpotWindow.mainloop()
