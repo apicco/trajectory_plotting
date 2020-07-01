@@ -31,7 +31,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	To do not bias the experimenter the trajectory position within the cell is not shown (compatibly with "r").
 	"""
 
-	def GUI_plot( tt , df ) : # show the frame
+	def GUI_plot( tt , df , ms = 25 ) : # show the frame
 
 		# select the trajctory
 		t = tt[ v[ 'j' ] ]
@@ -68,22 +68,19 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 		# I suspect probem between PT and python nomenclatures 
 		# (one starts at 1 the other at 0) 
 	
-		xlims = [ max( 0 , int( -v[ "r" ] + c[0] + 1 ) ) ,
-			min( int( c[0] + 1 + v[ "r" ] ) , len( v[ 'image'][ 0 , : , 1 ] ) - 1 ) ]
-		ylims = [ max( 0 , int( -v[ "r" ] + c[1] + 1 ) ) ,
-			min( int( c[1] + 1 + v[ "r" ] ) , len( v[ 'image'][ 0 , 1 , : ] ) - 1 ) ]
+		xlims = [ max( 0 , int( -v[ "r" ] + c[0] ) ) ,
+			min( int( c[0] + v[ "r" ] ) , len( v[ 'image'][ 0 , 1 , : ] ) - 1 ) ]
+		ylims = [ max( 0 , int( -v[ "r" ] + c[1] ) ) ,
+			min( int( c[1] + v[ "r" ] ) , len( v[ 'image'][ 0 , : , 1 ] ) - 1 ) ]
 
 		ax.imshow(	
 				v[ 'image' ][ int( v[ "frame" ] ) , 
-				xlims[0] : xlims[1] , 
-				ylims[0] : ylims[1] ], 
+				ylims[0] : ylims[1] , 
+				xlims[0] : xlims[1] ], 
 				cmap = v[ 'cmap' ]  , norm = norm(  vmin = np.amin( v[ 'image' ] ) , vmax = np.amax( v[ 'image' ] ) )
 				)
 		
-		ax.plot( [ 0 , 2 * v[ "r" ] - 0.5 ] , [ c[1] - int( -v[ "r" ] + c[1] + 1 ) , c[1] - int( -v[ "r" ] + c[1] + 1 ) ] , color = 'red' , linestyle = '--' , linewidth = 0.5 )
-		ax.plot( [ c[0] - int( -v[ "r" ] + c[0] + 1 ) , c[0] - int( -v[ "r" ] + c[0] + 1 ) ] , [ 0 , 2 * v[ "r" ] - 0.5 ] , color = 'red' , linestyle = '--' , linewidth = 0.5 )
- 
-		ax.plot( c[0] - int( -v[ "r" ] + c[0] + 1 ) ,  c[1] - int( -v[ "r" ] + c[1] + 1 ) , color = 'red' , linestyle = '' , linewidth = 0.5 )
+		ax.plot( c[0] - xlims[ 0 ] ,  c[1] - ylims[ 0 ] , color = 'red' , marker = '+' , mew = 0.5 , ms = ms , fillstyle = 'none' , )
 		ax.set_xlabel( "Pixels" )
 		ax.set_ylabel( "Pixels" )
 		ax.set_title( t_name + ' ' + '\n' + \
@@ -218,7 +215,9 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 			"- the <Up> arrow annotates the trajectory as 'Selected' and saves it in\n" + path_output + "/Selected/\n" +\
 			"- the <Down> arrow annotates the trajectory as 'Rejected' and saves it in\n" + path_output + "/Rejected/\n" +\
 			"- the <BackSpace> undo the last selection/rejection and annotate the log\n" +\
-			"- the <+> and <-> zoom in and out the image\n\n"
+			"- the <+> and <-> zoom in and out the image\n\n" +\
+			"NOTE THAT iCheck USES THE CONVENTION img[ z , y , x ]!\n" +\
+			"For example, you will need to swap x and y coordinates if you use an old version of ParticleTracker\n\n"
 	loading = "LOADING trajectories ASSIGNING their dataset ID..."
 	loaded = "trajectories are loaded and assigned to their dataset ID.\n-> PRESS <space> TO CONTINUE <-"
 	
