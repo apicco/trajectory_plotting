@@ -79,10 +79,11 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 				ylims[0] : ylims[1] ], 
 				cmap = v[ 'cmap' ]  , norm = norm(  vmin = np.amin( v[ 'image' ] ) , vmax = np.amax( v[ 'image' ] ) )
 				)
-		print( 'there' )
+		
 		ax.plot( [ 0 , 2 * v[ "r" ] - 0.5 ] , [ c[1] - int( -v[ "r" ] + c[1] + 1 ) , c[1] - int( -v[ "r" ] + c[1] + 1 ) ] , color = 'red' , linestyle = '--' , linewidth = 0.5 )
 		ax.plot( [ c[0] - int( -v[ "r" ] + c[0] + 1 ) , c[0] - int( -v[ "r" ] + c[0] + 1 ) ] , [ 0 , 2 * v[ "r" ] - 0.5 ] , color = 'red' , linestyle = '--' , linewidth = 0.5 )
  
+		ax.plot( c[0] - int( -v[ "r" ] + c[0] + 1 ) ,  c[1] - int( -v[ "r" ] + c[1] + 1 ) , color = 'red' , linestyle = '' , linewidth = 0.5 )
 		ax.set_xlabel( "Pixels" )
 		ax.set_ylabel( "Pixels" )
 		ax.set_title( t_name + ' ' + '\n' + \
