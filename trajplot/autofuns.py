@@ -35,6 +35,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 
 		# select the trajctory
 		t = tt[ v[ 'j' ] ]
+		t_name = t.annotations()[ 'file' ]
 		
 		# identify which centroid coordinate to associate with the frame
 		# start with nan centroid, centroid coordines must not be nan, therefore
@@ -60,7 +61,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 				i = v[ "frame" ] - v[ "frame_min" ] # trajectory element
 				c = [ t.coord()[ 0 ][ i ] , t.coord()[ 1 ][ i ] ] # centroid coordinate
 				break
-	
+
 		ax.clear()
 
 		# Plot image. Note: +1 in centroid positions is to center the spot in the quadrant. 
@@ -68,22 +69,25 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 		# (one starts at 1 the other at 0) 
 	
 		xlims = [ max( 0 , int( -v[ "r" ] + c[0] + 1 ) ) ,
-			min( int( c[0] + 1 + v[ "r" ] ) , len( v[ 'image'][ 0 , 1 , : ] ) - 1 ) ]
+			min( int( c[0] + 1 + v[ "r" ] ) , len( v[ 'image'][ 0 , : , 1 ] ) - 1 ) ]
 		ylims = [ max( 0 , int( -v[ "r" ] + c[1] + 1 ) ) ,
-			min( int( c[1] + 1 + v[ "r" ] ) , len( v[ 'image'][ 0 , : , 1 ] ) - 1 ) ]
-		
+			min( int( c[1] + 1 + v[ "r" ] ) , len( v[ 'image'][ 0 , 1 , : ] ) - 1 ) ]
+
 		ax.imshow(	
 				v[ 'image' ][ int( v[ "frame" ] ) , 
 				xlims[0] : xlims[1] , 
 				ylims[0] : ylims[1] ], 
 				cmap = v[ 'cmap' ]  , norm = norm(  vmin = np.amin( v[ 'image' ] ) , vmax = np.amax( v[ 'image' ] ) )
 				)
+		print( 'there' )
 		ax.plot( [ 0 , 2 * v[ "r" ] - 0.5 ] , [ c[1] - int( -v[ "r" ] + c[1] + 1 ) , c[1] - int( -v[ "r" ] + c[1] + 1 ) ] , color = 'red' , linestyle = '--' , linewidth = 0.5 )
 		ax.plot( [ c[0] - int( -v[ "r" ] + c[0] + 1 ) , c[0] - int( -v[ "r" ] + c[0] + 1 ) ] , [ 0 , 2 * v[ "r" ] - 0.5 ] , color = 'red' , linestyle = '--' , linewidth = 0.5 )
  
 		ax.set_xlabel( "Pixels" )
 		ax.set_ylabel( "Pixels" )
-		ax.set_title( 'Trajectory frame ' + str( i ) + '/' + str( v[ "frame_max" ] - v[ "frame_min" ] ) )
+		ax.set_title( t_name + ' ' + '\n' + \
+				'trajectory ' + str( v[ 'j' ] + 1 ) + '/' + str( len( tt ) ) + '; ' + 'frame ' + str( i ) + '/' + str( v[ "frame_max" ] - v[ "frame_min" ] ) + '; ' + \
+				r'$r=$' + str( v[ "r" ] ) )
 		canvas.draw()
 
 	def LeftKey( event , tt ) :
@@ -217,7 +221,6 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	loading = "LOADING trajectories ASSIGNING their dataset ID..."
 	loaded = "trajectories are loaded and assigned to their dataset ID.\n-> PRESS <space> TO CONTINUE <-"
 	
-	
 	# v is a dict of variables containing all the relevant variables that need to be passed to the 
 	# binding functions in tk. You should think of i as a list of pointers. i includes
 	# "frame" : the current frame shown in the GUI
@@ -274,7 +277,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	HeaderWindow.bind( '<space>' , ExitHeader )
 	HeaderWindow.mainloop()
 
-	f = open( path_output + '/icheck_log_' + pi + '.txt' , 'w+' )
+	f = open( path_output + '/icheck_log_' + str( pi ) + '.txt' , 'w+' )
 
 	SpotWindow = tk.Tk()
 	SpotWindow.wm_title( 'icheck' )
