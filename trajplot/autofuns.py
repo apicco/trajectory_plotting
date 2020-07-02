@@ -167,19 +167,23 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 		
 		# load the rigth movie
 		movie_name = t.annotations()[ 'dataset' ][ 5 : -4 ] + '.tif'
-		if v[ "path_movies" ] :
+
+		# if the movie is already loaded in v, don't load it.
+		if movie_name != v[ 'movie_name' ] : 
+
+			if v[ "path_movies" ] :
+				
+				im = tiff.imread( v[ 'path_movies' ] + '/' + movie_name )
 			
-			im = tiff.imread( v[ 'path_movies' ] + '/' + movie_name )
-		
-		elif v[ "path_movie" ] : 
-
-			im = tiff.imread( v[ 'path_movie' ] )
-
-		else :
-
-			raise AttributeError( 'Verify that path_movie, to a single movie tif file, or path_movies, to a folder containing one or more movie tif files, are correct' )
-
-		v[ 'image' ] = im
+			elif v[ "path_movie" ] : 
+	
+				im = tiff.imread( v[ 'path_movie' ] )
+	
+			else :
+	
+				raise AttributeError( 'Verify that path_movie, to a single movie tif file, or path_movies, to a folder containing one or more movie tif files, are correct' )
+	
+			v[ 'image' ] = im
 
 		v[ "frame_min" ] = np.nanmin( tt[ v[ 'j' ] ].frames() )
 		v[ "frame_max" ] = np.nanmax( tt[ v[ 'j' ] ].frames() ) 
@@ -233,11 +237,11 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 
 	if path_movie : 
 	
-		v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , cmap = cmap , path_movies = '' , path_movie = path_movie )
+		v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , cmap = cmap , path_movies = '' , path_movie = path_movie , movie_name = '' , image = [] )
 
 	else :
 		
-		v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , cmap = cmap , path_movies = path_movies , path_movie = '' )
+		v = dict( frame = np.nan , frame_min = np.nan , frame_max = np.nan , j = 0 , r = r , cmap = cmap , path_movies = path_movies , path_movie = '' , movie_name = '' , image = [] )
 
 	# --------------------------------------------------- #
 
