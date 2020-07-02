@@ -80,7 +80,8 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 				cmap = v[ 'cmap' ]  , norm = norm(  vmin = np.amin( v[ 'image' ] ) , vmax = np.amax( v[ 'image' ] ) )
 				)
 		
-		ax.plot( c[0] - xlims[ 0 ] ,  c[1] - ylims[ 0 ] , color = 'red' , marker = '+' , mew = 0.5 , ms = ms , fillstyle = 'none' , )
+		#ax.plot( c[0] - xlims[ 0 ] ,  c[1] - ylims[ 0 ] , color = 'red' , marker = '+' , mew = 0.5 , ms = ms , fillstyle = 'none' , )
+		ax.plot( c[0] - xlims[ 0 ] ,  c[1] - ylims[ 0 ] , color = 'red' , marker = 's' , mew = 0.5 , ms = ms , fillstyle = 'none' , ) #square marker /MM 1. jul 2020
 		ax.set_xlabel( "Pixels" )
 		ax.set_ylabel( "Pixels" )
 		ax.set_title( t_name + ' ' + '\n' + \
