@@ -12,7 +12,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib.backend_bases import key_press_handler
 
-def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' ) :
+def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' , marker = 's' , markersize = 25 ) :
 	"""
 	icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' ) :
 		load the trajectories in path_trajectories 
@@ -31,7 +31,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	To do not bias the experimenter the trajectory position within the cell is not shown (compatibly with "r").
 	"""
 
-	def GUI_plot( tt , df , ms = 25 ) : # show the frame
+	def GUI_plot( tt , df , ms = markersize , marker = marker ) : # show the frame
 
 		# select the trajctory
 		t = tt[ v[ 'j' ] ]
@@ -80,8 +80,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 				cmap = v[ 'cmap' ]  , norm = norm(  vmin = np.amin( v[ 'image' ] ) , vmax = np.amax( v[ 'image' ] ) )
 				)
 		
-		#ax.plot( c[0] - xlims[ 0 ] ,  c[1] - ylims[ 0 ] , color = 'red' , marker = '+' , mew = 0.5 , ms = ms , fillstyle = 'none' , )
-		ax.plot( c[0] - xlims[ 0 ] ,  c[1] - ylims[ 0 ] , color = 'red' , marker = 's' , mew = 0.5 , ms = ms , fillstyle = 'none' , ) #square marker /MM 1. jul 2020
+		ax.plot( c[0] - xlims[ 0 ] ,  c[1] - ylims[ 0 ] , color = 'red' , marker = marker , mew = 0.5 , ms = ms , fillstyle = 'none' , ) #square marker /MM 1. jul 2020
 		ax.set_xlabel( "Pixels" )
 		ax.set_ylabel( "Pixels" )
 		ax.set_title( t_name + ' ' + '\n' + \
