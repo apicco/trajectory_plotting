@@ -62,7 +62,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 				c = [ t.coord()[ 0 ][ i ] , t.coord()[ 1 ][ i ] ] # centroid coordinate
 				break
 
-		ax.clear()
+		#ax.clear()
 
 		# Plot image. Note: +1 in centroid positions is to center the spot in the quadrant. 
 		# I suspect probem between PT and python nomenclatures 
@@ -73,14 +73,12 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 		ylims = [ max( 0 , int( -v[ "r" ] + c[1] ) ) ,
 			min( int( c[1] + v[ "r" ] ) , len( v[ 'image'][ 0 , : , 1 ] ) - 1 ) ]
 
-		ax.imshow(	
-				v[ 'image' ][ int( v[ "frame" ] ) , 
-				ylims[0] : ylims[1] , 
-				xlims[0] : xlims[1] ], 
-				cmap = v[ 'cmap' ]  , norm = norm(  vmin = np.amin( v[ 'image' ] ) , vmax = np.amax( v[ 'image' ] ) )
-				)
-		
-		ax.plot( c[0] - xlims[ 0 ] + offset[ 0 ] ,  c[1] - ylims[ 0 ] + offset[ 1 ] , color = 'red' , marker = marker , mew = 0.5 , ms = ms , fillstyle = 'none' , )
+		IMG = v[ 'image' ][ int( v[ "frame" ] ) , ylims[0] : ylims[1] , xlims[0] : xlims[1] ] 
+	
+		render.set_array( IMG )
+		new_centroid = [ c[0] - xlims[ 0 ] + offset[ 0 ] ,  c[1] - ylims[ 0 ] + offset[ 1 ] ]
+		centroid_plot[0].set_data( new_centroid )
+
 		ax.set_xlabel( "Pixels" )
 		ax.set_ylabel( "Pixels" )
 		ax.set_title( t_name + ' ' + '\n' + \
@@ -293,7 +291,60 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	ax = fig.add_subplot( 111 )
 	canvas = FigureCanvasTkAgg( fig , master = SpotWindow )  # A tk.DrawingArea.
 
-	GUI_plot( tt , 1 )
+	# GUIplot equivalent
+	df = 1 
+
+	# select the trajctory
+	t = tt[ v[ 'j' ] ]
+	t_name = t.annotations()[ 'file' ]
+	
+	# identify which centroid coordinate to associate with the frame
+	# start with nan centroid, centroid coordines must not be nan, therefore
+	# search for the first not nan and increment i "frame" accordingly
+	c = [ np.nan , np.nan ]
+	v_frame_old = v[ 'frame' ]  # used to stall the movie in case v[ "frame" ] reaches
+								# frame_min, frame_max, or movie length
+	while c[ 0 ] != c[ 0 ] :
+
+		v[ "frame" ] = v[ "frame" ] + df
+		i = v[ "frame" ] - v[ "frame_min" ] # trajectory element
+		if ( 
+				( v[ "frame" ] >= v[ "frame_min" ] ) & 
+				(  v[ "frame" ] <= v[ "frame_max" ] ) & 
+				( v[ "frame" ] < len( v[ 'image' ] ) ) 
+			) : # check that we do not exceed frame_min, frame_max, and movie length
+			
+				c = [ t.coord()[ 0 ][ i ] , t.coord()[ 1 ][ i ] ] # centroid coordinate
+
+		else :
+
+			v[ "frame" ] = v_frame_old 
+			i = v[ "frame" ] - v[ "frame_min" ] # trajectory element
+			c = [ t.coord()[ 0 ][ i ] , t.coord()[ 1 ][ i ] ] # centroid coordinate
+			break
+
+	# Plot image. Note: +1 in centroid positions is to center the spot in the quadrant. 
+	# I suspect probem between PT and python nomenclatures 
+	# (one starts at 1 the other at 0) 
+
+	xlims = [ max( 0 , int( -v[ "r" ] + c[0] ) ) ,
+		min( int( c[0] + v[ "r" ] ) , len( v[ 'image'][ 0 , 1 , : ] ) - 1 ) ]
+	ylims = [ max( 0 , int( -v[ "r" ] + c[1] ) ) ,
+		min( int( c[1] + v[ "r" ] ) , len( v[ 'image'][ 0 , : , 1 ] ) - 1 ) ]
+
+	IMG = v[ 'image' ][ int( v[ "frame" ] ) , ylims[0] : ylims[1] , xlims[0] : xlims[1] ] 
+
+	render = ax.imshow( IMG , cmap = v[ 'cmap' ]  , norm = norm(  vmin = np.amin( v[ 'image' ] ) , vmax = np.amax( v[ 'image' ] ) ) )
+
+	centroid_plot = ax.plot( c[0] - xlims[ 0 ] + offset[ 0 ] ,  c[1] - ylims[ 0 ] + offset[ 1 ] , color = 'red' , marker = marker , mew = 0.5 , ms = markersize , fillstyle = 'none' , )
+	ax.set_xlabel( "Pixels" )
+	ax.set_ylabel( "Pixels" )
+	ax.set_title( t_name + ' ' + '\n' + \
+			'trajectory ' + str( v[ 'j' ] + 1 ) + '/' + str( len( tt ) ) + '; ' + 'frame ' + str( i ) + '/' + str( v[ "frame_max" ] - v[ "frame_min" ] ) + '; ' + \
+			r'$r=$' + str( v[ "r" ] ) )
+	canvas.draw()
+
+	# end  GUIplot equivalent	
 
 	canvas.get_tk_widget().pack( side = tk . TOP , fill=tk.BOTH , expand = 1 )
 
