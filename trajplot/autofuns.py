@@ -16,26 +16,20 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 class Repr( Figure ) :
 
 	def __init__( self , trajlist , j , r , im ) :
-
+		
+		# trajectory
 		self.j = j
 		self.tlist = trajlist
 		self.trajectory = self.tlist[ self.j ]
-		self.image = im # image
-		self.r = r # zoom radius
 		self.fmin = np.nanmin( self.trajectory.frames() )
 		self.fmax = np.nanmax( self.trajectory.frames() )
 		self.f = self.fmin # frame
 		self.figure = Figure( figsize = ( 5 , 4 ) , dpi = 100 )
 		self.ax = self.figure.add_subplot( 111 )
 
-		print( self.lims() )
-		self.aximg = self.ax.imshow( 
-				[ self.f , self.lims()[ 'ylims'][ 0 ] : self.lims()[ 'ylims'][ 1 ] , self.lims()[ 'xlims' ][ 0 ] : self.lims()[ 'xlims' ][ 1 ] ] ,  
-				norm = norm( vmin = np.amin( self.image ) , vmax = np.amax( self.image ) ) , # intensity normalization
-				cmap = cmap
-			)
-
-																# will be used to update the rendering
+		# image 
+		self.image = im # image
+		self.r = r # zoom radius
 
 	def df( self , d ) : # increment frames by d
 
@@ -54,7 +48,7 @@ class Repr( Figure ) :
 
 			else :
 				
-				self._f = old_fram
+				self._f = old_frame
 				break
 
 	def zoom( self , r ) :
@@ -69,24 +63,27 @@ class Repr( Figure ) :
 
 		return dict( xlims = [ max( 0 , int( - self.r + self.centroid()[0] ) ) , min( int( self.centroid()[0] + self.r ) , len( self.image[ 0 , 1 , : ] ) - 1 ) ] , ylims = [ max( 0 , int( -self.r + self.centroid()[1] ) ) , min( int( self.centroid()[1] + self.r ) , len( self.image[ 0 , : , 1 ] ) - 1 ) ] )
 
+		
 	def render( self , cmap ) : # rende the image 
 
-		self.aximg
+		aximg = self.ax.imshow( 
+				[ self.f , self.lims()[ 'ylims'][ 0 ] : self.lims()[ 'ylims'][ 1 ] , self.lims()[ 'xlims' ][ 0 ] : self.lims()[ 'xlims' ][ 1 ] ] ,  
+				norm = norm( vmin = np.amin( self.image ) , vmax = np.amax( self.image ) ) , # intensity normalization
+				cmap = cmap
+				)											
+
 		self.ax.set_xlabel( "Pixels" )
 		self.ax.set_ylabel( "Pixels" )
 		self.ax.set_title( self.trajectory.annotations()[ 'file' ] + ' ' + '\n' + \
 				'trajectory ' + str( self.j + 1 ) + '/' + str( len( self.tlist ) ) + '; ' + 'frame ' + str( self.f - self.fmin ) + '/' + str( self.fmax - self.fmin ) + '; ' + \
 				r'$r=$' + str( self.r ) )
-	print( 'end render' )
 
-	def update( self ) :
+		return aximg
+
+	def update( self , aximg ) :
 		
-		print( 'update' ) 
-		print( self.f )
-		print( self.lims() )
 		img = self.image[ self.f , self.lims()[ 'ylims'][ 0 ] : self.lims()[ 'ylims'][ 1 ] , self.lims()[ 'xlims' ][ 0 ] : self.lims()[ 'xlims' ][ 1 ] ] ,  # image 
-		print( img ) 
-		self.aximg.set_array( img )
+		aximg.set_array( img )
 
 def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' , marker = 's' , markersize = 25 , offset = ( 0 , 0 ) , anticipate = 0 ) :
 	"""
@@ -118,16 +115,16 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 
 			return tiff.imread( path_movie )
 
-	def LeftKey( event , frame , increment = -1 ) :
+	def LeftKey( event , frame , increment , aximg ) :
 		
 		frame.df( increment ) #frame increment to the left in case of nan
-		frame.update()
+		frame.update( aximg )
 
 			
-	def RightKey( event , frame , incrememnt = 1 ) :
+	def RightKey( event , frame , increment , aximg ) :
 
 		frame.df( increment ) 
-		frame.update()
+		frame.update( aximg )
 
 	def ZoomOut( event , frame , increment = 1 ) :
 		
@@ -265,13 +262,13 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 
 	canvas = FigureCanvasTkAgg( frm.figure , master = SpotWindow )  # A tk.DrawingArea.
 	
-	frm.render( cmap )
+	aximg = frm.render( cmap )
 	
 	canvas.draw()
 	canvas.get_tk_widget().pack( side = tk . TOP , fill=tk.BOTH , expand = 1 )
 #
-	SpotWindow.bind( "<Left>" , lambda event , frame = frm : LeftKey( event , frame ) )
-	SpotWindow.bind( "<Right>" , lambda event , frame = frm : RightKey( event , frame ) )
+	SpotWindow.bind( "<Left>" , lambda event , frame = frm , increment = -1 , aximg = aximg : LeftKey( event , frame , increment , aximg ) )
+	SpotWindow.bind( "<Right>" , lambda event , frame = frm , increment = 1 : aximg = aximg : RightKey( event , frame , increment , aximg ) )
 #	#SpotWindow.bind( "<Up>" , lambda event , frame = frm , path = ps , f = f : UpKey( event , tt , path , f ) )
 #	#SpotWindow.bind( "<Down>" , lambda event , tt = tt , path = pr , f = f : DownKey( event , tt , path , f ) )
 ##	SpotWindow.bind( "<BackSpace>" , lambda event , tt = tt , path_sel = ps , path_rej = pr : BackKey( event , tt , path_sel , path_rej ) )
