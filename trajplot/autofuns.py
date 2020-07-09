@@ -2,7 +2,6 @@ import os
 import tkinter as tk
 import numpy as np
 from matplotlib.colors import Normalize as norm
-from matplotlib.figure import Figure 
 import matplotlib.pyplot as plt
 from skimage.external import tifffile as tiff
 from trajalign.traj import Traj
@@ -11,31 +10,70 @@ from trajalign.average import load_directory
 # to plot image frames
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# frames before and after as input parameters.
+# ----------------------
+# DEFINE THE OBJECT Repr
+class Repr() :
 
-class Repr( Figure ) :
-
-	def __init__( self , trajlist , j , r , im , master , cmap ) :
-		
+	def __init__( self , trajlist , j , r , im , master , cmap , buffer_frames , offset , marker , markersize ) :
+	
 		# trajectory data
-		self.j = j
 		self.tlist = trajlist
-		self.trajectory = self.tlist[ self.j ]
-		self.fmin = np.nanmin( self.trajectory.frames() )
-		self.fmax = np.nanmax( self.trajectory.frames() )
-		self.f = self.fmin # frame
+
+		# trajectory parameters
+		self.j = j
+		self.offset = offset 
+		self.trajectory = None # self.tlist[ self.j ]
+		self.fmin = None # np.nanmin( self.trajectory.frames() )
+		self.fmax = None # np.nanmax( self.trajectory.frames() )
+		self.f = None # self.fmin # frame
 
 		# image data 
+		self.lb = None
+		self.ub = None 
 		self.image = im # image
 		self.r = r # zoom radius
 
 		# artist's canvas
+		self.bff = buffer_frames
 		self.cmap = cmap
 		self.figure = plt.figure( figsize = ( 5 , 4 ) , dpi = 100 )
 		self.canvas = FigureCanvasTkAgg( self.figure , master = master ) 
 
-	def df( self , d ) : # increment frames by d
+		# plotting parameters
+		self.marker = marker
+		self.markersize = markersize 
 
+	def initiate( self , j = None ) :
+
+		# initiate the trajectory parameters in the Repr object
+		if not j :
+
+			self.trajectory = self.tlist[ self.j ]
+
+		else :
+
+			self.j = j
+			self.trajectory = self.tlist[ self.j ]
+		
+		# translate the trajectory by the offset, if any
+		self.trajectory.translate( self.offset ) 
+
+		# initiate fmin and fmax
+		self.fmin = np.nanmin( self.trajectory.frames() )
+		self.fmax = np.nanmax( self.trajectory.frames() )
+
+		# start from self.buffer_frames before the start of the trajectory
+		# if the trajectory is too close to the beginning of the movie, then
+		# start from zero
+		self.f = max( 0 , self.fmin - self.bff )
+	
+		# define the lower and upper boundary of the Representation 
+		self.lb = max( 0 , self.fmin - self.bff )						# lower boundary
+		self.ub = min( self.fmax + self.bff , self.image.shape[ 0 ] )	# upper boundary
+			
+
+	def df( self , d ) : # increment frames by d
+	
 		c = [ np.nan , np.nan ] # initiate a nan centroid coordinate
 								# to enter the while loop
 		
@@ -43,9 +81,12 @@ class Repr( Figure ) :
 								# only nan until the end of the trajectory
 								# file
 		while c[ 0 ] != c[ 0 ] :
-					
-			if ( ( self.f + d >= self.fmin ) & ( self.f + d <= self.fmax ) ) :
-		
+				
+			# if self.f + d is comprised in the lower and upperboundaries
+			# then do the incrememtn and compute the centroid, otherwise
+			# stall.
+			if ( ( self.f + d >= self.lb ) & ( self.f + d <= self.ub ) ) :
+	
 				self.f = self.f + d
 				c = self.centroid()
 
@@ -55,22 +96,36 @@ class Repr( Figure ) :
 				break
 
 	def zoom( self , r ) :
-
+		
+		# zoom increment
 		self.r = self.r + r 
 
 	def centroid( self ) :
 
-		return [ self.trajectory.coord()[ 0 ][ self.f - self.fmin ] , self.trajectory.coord()[ 1 ][ self.f - self.fmin ] ] #i-th element in centrod coord is f - fmin
+		# output the centroid coordinates of the trajectory, if the trajectory exists on
+		# the self.f frame. Otherwise output the centroid coordinate from the nearest frame
+		# within the trajectory
+		if ( ( self.f >= self.fmin ) & ( self.f <= self.fmax ) ) :
 
+			return [ self.trajectory.coord()[ 0 ][ self.f - self.fmin ] , self.trajectory.coord()[ 1 ][ self.f - self.fmin ] ] #i-th element in centrod coord is f - fmin
+
+		elif ( self.f < self.fmin ) :
+
+			return [ self.trajectory.coord()[ 0 ][ 0 ] , self.trajectory.coord()[ 1 ][ 0 ] ] #i-th element in centrod coord is f - fmin
+
+		elif ( self.f > self.fmax ) :
+
+			return [ self.trajectory.coord()[ 0 ][ len( self.trajectory ) - 1 ] , self.trajectory.coord()[ 1 ][ len( self.trajectory ) - 1 ] ] #i-th element in centrod coord is f - fmin
 	def lims( self ) :
 
 		return dict( xlims = [ max( 0 , int( - self.r + self.centroid()[0] ) ) , min( int( self.centroid()[0] + self.r ) , len( self.image[ 0 , 1 , : ] ) - 1 ) ] , ylims = [ max( 0 , int( -self.r + self.centroid()[1] ) ) , min( int( self.centroid()[1] + self.r ) , len( self.image[ 0 , : , 1 ] ) - 1 ) ] )
 
 	def clear( self ) :
 		
+		# clear the figure content 
 		plt.clf()
 		
-	def render( self ) : # rende the image 
+	def render( self ) : # render the image and centroid coordinate
 
 		# load the region of interest within the image
 		img = self.image[ int( self.f ) , self.lims()[ 'ylims'][ 0 ] : self.lims()[ 'ylims'][ 1 ] , self.lims()[ 'xlims' ][ 0 ] : self.lims()[ 'xlims' ][ 1 ] ]
@@ -83,27 +138,38 @@ class Repr( Figure ) :
 				cmap = self.cmap
 				)											
 		
+		# plot centroid
+		axcentroid = plt.plot( self.centroid()[ 0 ] - self.lims()[ 'xlims' ][ 0 ] , self.centroid()[ 1 ] - self.lims()[ 'ylims' ][ 0 ] , marker = self.marker , markersize = self.markersize , color = 'red' ) 
+		
 		# graphical parameters
 		plt.xlabel( "Pixels" )
 		plt.ylabel( "Pixels" )
+
 		plt.title( self.trajectory.annotations()[ 'file' ] + ' ' + '\n' + \
 				'trajectory ' + str( self.j + 1 ) + '/' + str( len( self.tlist ) ) + '; ' + 'frame ' + str( self.f - self.fmin ) + '/' + str( self.fmax - self.fmin ) + '; ' + \
 				r'$r=$' + str( self.r ) )
 		
 		self.canvas.draw()
 		
-		return aximg
+		return [ aximg , axcentroid[ 0 ] ]
 
-	def update( self , aximg ) :
+	def update( self , ax ) : # update the image and centroid already rendered
 	
 		img = self.image[ int( self.f ) , self.lims()[ 'ylims'][ 0 ] : self.lims()[ 'ylims'][ 1 ] , self.lims()[ 'xlims' ][ 0 ] : self.lims()[ 'xlims' ][ 1 ] ]  # image 
-		aximg.set_array( img )
+		ax[0].set_array( img )
+	
+		# plot centroid
+		ax[1].set_data( self.centroid()[ 0 ] - self.lims()[ 'xlims' ][ 0 ] , self.centroid()[ 1 ] - self.lims()[ 'ylims' ][ 0 ] )
+		
 		plt.title( self.trajectory.annotations()[ 'file' ] + ' ' + '\n' + \
 				'trajectory ' + str( self.j + 1 ) + '/' + str( len( self.tlist ) ) + '; ' + 'frame ' + str( self.f - self.fmin ) + '/' + str( self.fmax - self.fmin ) + '; ' + \
 				r'$r=$' + str( self.r ) )
+			
 		self.canvas.draw()
 
-def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' , marker = 's' , markersize = 25 , offset = ( 0 , 0 ) , anticipate = 0 ) :
+# -----------------------------------------------------
+# DEFINE THE FUNCTION ICHECK WHICH USES THE OBJECT Repr
+def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' , marker = 's' , markersize = 25 , anticipate = 0 , buffer_frames = 0 , offset = ( 0 , 0 ) ) :
 	"""
 	icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' ) :
 		load the trajectories in path_trajectories 
@@ -133,94 +199,127 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 
 			return tiff.imread( path_movie )
 
-	def LeftKey( event , frame , increment , aximg ) :
-		
+	def LeftKey( event , frame , increment , ax ) :
+	
 		frame.df( increment ) #frame increment to the left in case of nan
-		frame.update( aximg[0] )
+		frame.update( ax )
 
-	def RightKey( event , frame , increment , aximg ) :
+	def RightKey( event , frame , increment , ax ) :
 
 		frame.df( increment ) 
-		frame.update( aximg[0] )
+		frame.update( ax )
 		
 		frm.canvas.get_tk_widget().pack( side = tk . TOP , fill=tk.BOTH , expand = 1 )
 
-	def ZoomOut( event , frame , increment , aximg ) :
+	def ZoomOut( event , frame , increment , ax ) :
 	 
 		frame.clear()
 
 		frame.zoom( increment ) 
-		aximg[0] = frame.render()
+		
+		new_ax = frame.render()
+		ax[ 0 ] = new_ax[ 0 ]
+		ax[ 1 ] = new_ax[ 1 ]
 	
-	def ZoomIn( event , frame , increment , aximg ) :
+	def ZoomIn( event , frame , increment , ax ) :
 	
 		frame.clear()
 		
 		frame.zoom( increment )
 		
-		aximg[0] = frame.render()
+		new_ax = frame.render()
+		ax[ 0 ] = new_ax[ 0 ]
+		ax[ 1 ] = new_ax[ 1 ]
 			
-	def UpKey( event , frame , path , f ) :
-	
-		t = frame.trajectory()
+	def UpKey( event , frame , path , f , ax ) :
+
+		# load the trajectory info, update it, and save the trajectory
+		t = frame.trajectory
 		t.annotations()[ "icheck_stamp" ] = "Selected" 
 		t.save( path + '/' + t.annotations()[ "file" ] )
 
+		# save log
 		s_log = t.annotations()[ "file" ] + "\t-selected-" 
 		f.write( s_log + '\n' )
+
+		# print log
 		print( s_log )
 			
-#		if j == ( len( tt ) - 1 ) :
-#
-#			f.close()
-#			SpotWindow.destroy()
-#
-#		else :
-#			
-#			# move to the next trajectory
-#			v[ 'j' ] = v[ 'j' ] + 1 
-#			Update_v( tt )
-#			
-#			GUI_plot( tt , 1 )
+		if frame.j == ( len( frame.tlist ) - 1 ) :
+
+			f.close()
+			SpotWindow.destroy()
+
+		else :
+			
+			# move to the next trajectory
+			frame.initiate( frame.j + 1 ) 
+			
+			# clear the figure
+			frame.clear()
+			
+			# render the new figure
+			new_ax = frame.render()
+			ax[ 0 ] = new_ax[ 0 ]
+			ax[ 1 ] = new_ax[ 1 ]
 		
-	def DownKey( event , tt , path , f ) :
+	def DownKey( event , frame , path , f , aximg ) :
 		
-		# select the trajctory
-		t = frame.trajectory()
-		
+		# load the trajectory info, update it, and save the trajectory
+		t = frame.trajectory
 		t.annotations()[ "icheck_stamp" ] = "Rejected" 
 		t.save( path + '/' + t.annotations()[ "file" ] )
 
+		# save log
 		s_log = t.annotations()[ "file" ] + "\t-rejected-" 
 		f.write( s_log + '\n' )
+
+		# print log
 		print( s_log )
-	
-#		if v[ 'j' ] == ( len( tt ) - 1 ) :
-#			f.close()
-#			SpotWindow.destroy()
-#		else :
-#			# move to the next trajectory
-#			v[ 'j' ] = v[ 'j' ] + 1 
-#			Update_v( tt )
-#			GUI_plot( tt , 1 )
+			
+		if frame.j == ( len( frame.tlist ) - 1 ) :
+
+			f.close()
+			SpotWindow.destroy()
+
+		else :
+			
+			# move to the next trajectory
+			frame.initiate( frame.j + 1 ) 
+
+			# clear the figure
+			frame.clear()
+		
+			# render the new figure
+			new_ax = frame.render()
+			ax[ 0 ] = new_ax[ 0 ]
+			ax[ 1 ] = new_ax[ 1 ]
 
 	def ExitHeader( event ) :
 
 		HeaderWindow.destroy()
 
-#	def BackKey( event , tt , path_sel , path_rej ) :
-#
-#		if v[ 'j' ] > 0 :
-#
-#			v[ 'j' ] = v[ 'j' ] - 1
-#			try : 
-#				os.remove( path_sel + '/' + tt[ v[ 'j' ] ].annotations()[ 'file' ] )
-#			except :
-#				os.remove( path_rej + '/' + tt[ v[ 'j' ] ].annotations()[ 'file' ] )
-#			print( tt[ v[ 'j' ] ].annotations()[ 'file' ] + '\t-undo-' )
-#			
-#			Update_v( tt )
-#			GUI_plot( tt , 1 )
+	def BackKey( event , frame , path_sel , path_rej , ax ) :
+
+		if frame.j > 0 :
+
+			frame.j = frame.j - 1
+			try : 
+				os.remove( path_sel + '/' + frame.tlist[ frame.j ].annotations()[ 'file' ] )
+			except :
+				os.remove( path_rej + '/' + frame.tlist[ frame.j ].annotations()[ 'file' ] )
+			print( frame.tlist[ frame.j ].annotations()[ 'file' ] + '\t-undo-' )
+	
+		# clear the figure
+		frame.clear()
+	
+		# initiate the j-th trajectory
+		frame.initiate()
+
+		# render the new figure
+		new_ax = frame.render()
+		ax[ 0 ] = new_ax[ 0 ]
+		ax[ 1 ] = new_ax[ 1 ]
 		
 	HeaderWindow = tk.Tk() # create a Tkinter window
 	HeaderWindow.wm_title( 'icheck' )
@@ -244,24 +343,28 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	# Spot selection can be done multiple times to asses its 
 	# robustness. If the Selected and Rejected folders exist already, then their name
 	# is complemented with an iterated number.
-	ps = path_output + '/Selected_0'
-	pr = path_output + '/Rejected_0' 
-	pd = path_output + '/FullDataset'
 	pi = 0
+	pd = path_output + '/FullDataset'
+	ps = path_output + f'/Selected_{pi:02}'
+	pr = path_output + f'/Rejected_{pi:02}' 
+
 	while ( os.path.exists( ps ) | os.path.exists( pr ) ) :
 
-		ps = ps[ :-1 ] +  str( pi )
-		pr = pr[ :-1 ] + str( pi )
 		pi += 1
-
+	
+		ps = path_output + f'/Selected_{pi:02}'
+		pr = path_output + f'/Rejected_{pi:02}' 
+	
 	os.makedirs( ps )
 	os.makedirs( pr )
+
 	if not os.path.exists( pd ) : 
+	
 		os.makedirs( pd )
 
 	if not path_movie :
 
-		print( 'assigning dataset ID...' )
+		print( 'assigning dataset ID... this might take some time, be patient' )
 		
 		for i in range( len( tt ) ) :
 			
@@ -279,23 +382,25 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	HeaderWindow.bind( '<space>' , ExitHeader )
 	HeaderWindow.mainloop()
 
-	f = open( path_output + '/icheck_log_' + str( pi ) + '.txt' , 'w+' )
+	f = open( path_output + f'/icheck_log_{pi:02}.txt' , 'w+' )
 
 	SpotWindow = tk.Tk()
 	SpotWindow.wm_title( 'icheck' )
 
-	frm = Repr( tt , 0 , r , LoadMovie( path_movies , path_movie , tt[ 0 ] ) , master = SpotWindow , cmap = cmap )
+	frm = Repr( tt , 0 , r , LoadMovie( path_movies , path_movie , tt[ 0 ] ) , master = SpotWindow , cmap = cmap , buffer_frames = buffer_frames , offset = offset , marker = marker , markersize = markersize )
+	frm.initiate()
 
-	aximg = [ frm.render() ]
-	
+	ax = frm.render()
+
 	frm.canvas.get_tk_widget().pack( side = tk . TOP , fill=tk.BOTH , expand = 1 )
-#
-	SpotWindow.bind( "<Left>" , lambda event , frame = frm , increment = -1 , aximg = aximg : LeftKey( event , frame , increment , aximg ) )
-	SpotWindow.bind( "<Right>" , lambda event , frame = frm , increment = 1 , aximg = aximg : RightKey( event , frame , increment , aximg ) )
-#	#SpotWindow.bind( "<Up>" , lambda event , frame = frm , path = ps , f = f : UpKey( event , tt , path , f ) )
-#	#SpotWindow.bind( "<Down>" , lambda event , tt = tt , path = pr , f = f : DownKey( event , tt , path , f ) )
-##	SpotWindow.bind( "<BackSpace>" , lambda event , tt = tt , path_sel = ps , path_rej = pr : BackKey( event , tt , path_sel , path_rej ) )
-	SpotWindow.bind( "-" , lambda event , frame = frm , increment = 1 , aximg = aximg : ZoomOut( event , frame , increment , aximg ) )
-	SpotWindow.bind( "+" , lambda event , frame = frm , increment = -1 , aximg = aximg : ZoomIn( event , frame , increment , aximg ) )
-#	
+
+	# bind command controls to the SpotWindow
+	SpotWindow.bind( "<Left>" , lambda event , frame = frm , increment = -1 , ax = ax : LeftKey( event , frame , increment , ax ) )
+	SpotWindow.bind( "<Right>" , lambda event , frame = frm , increment = 1 , ax = ax : RightKey( event , frame , increment , ax ) )
+	SpotWindow.bind( "<Up>" , lambda event , frame = frm , path = ps , f = f , ax = ax : UpKey( event , frame , path , f , ax ) )
+	SpotWindow.bind( "<Down>" , lambda event , frame = frm , path = pr , f = f , ax = ax : DownKey( event , frame , path , f , ax ) )
+	SpotWindow.bind( "<BackSpace>" , lambda event , frame = frm , path_sel = ps , path_rej = pr , ax = ax : BackKey( event , frame , path_sel , path_rej , ax ) )
+	SpotWindow.bind( "-" , lambda event , frame = frm , increment = 1 , ax = ax : ZoomOut( event , frame , increment , ax ) )
+	SpotWindow.bind( "+" , lambda event , frame = frm , increment = -1 , ax = ax : ZoomIn( event , frame , increment , ax ) )
+	
 	SpotWindow.mainloop()
