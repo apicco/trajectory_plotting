@@ -169,7 +169,7 @@ class Repr() :
 
 # -----------------------------------------------------
 # DEFINE THE FUNCTION ICHECK WHICH USES THE OBJECT Repr
-def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' , marker = 's' , markersize = 25 , buffer_frames = 0 , offset = ( 0 , 0 ) ) :
+def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' , marker = 's' , markersize = 25 , buffer_frames = 0 , offset = ( 0 , 0 ) , movie_appendix = '.tif' ) :
 	"""
 	icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' ) :
 		load the trajectories in path_trajectories 
@@ -192,7 +192,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 		
 		if path_movies : 
 	
-			movie_name = t.annotations()[ 'dataset' ][ 5 : -4 ] + '.tiff' 
+			movie_name = t.annotations()[ 'dataset' ][ 5 : -4 ] + movie_appendix 
 			return tiff.imread( path_movies + '/' + movie_name )
 
 		else : 
