@@ -325,7 +325,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	HeaderWindow.wm_title( 'icheck' )
 
 	# define and show a welcome header with command instructions
-	header = "Welcome to icheck! You are going to asses the quality \n of the spots used to derive the trajectory list input " \
+	header = "Welcome to icheck! You are going to asses the quality \n of the spots used to derive the trajectory list input\n" \
 			+ "COMMANDS:\n" + \
 			"- <Left> and <Right> arrows navigate you within the spot frames\n" + \
 			"- the <Up> arrow annotates the trajectory as 'Selected' and saves it in\n" + path_output + "/Selected/\n" +\
