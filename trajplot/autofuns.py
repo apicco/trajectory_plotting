@@ -14,7 +14,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # DEFINE THE OBJECT Repr
 class Repr() :
 
-	def __init__( self , trajlist , j , r , im , master , cmap , buffer_frames , offset , marker , markersize ) :
+	def __init__( self , trajlist , j , r , master , cmap , buffer_frames , offset , marker , markersize  , path_movie = '' , path_movies = '' ) :
 	
 		# trajectory data
 		self.tlist = trajlist
@@ -28,9 +28,19 @@ class Repr() :
 		self.f = None # self.fmin # frame
 
 		# image data 
+		self.path_movies = path_movies 
+		self.path_movie = path_movie
+		# if there is only one movie (i.e. path_movie not = '' )
+		# then that is also the name of the movie
+		if ( ( self.path_movie != '' ) & ( self.path_movies == '' ) ) :
+			self.im_name = self.path_movie
+		elif ( ( self.path_movie == '' ) & ( self.path_movies != '' ) ) :
+			self.im_name = None # im_name
+		else :
+			raise AttributeError( 'You must specify either the path to a movie (path_movie), or the path to a folder containing several movies (path_movies)' )
+		self.image = None # tiff.imread( self.im_name ) 
 		self.lb = None
-		self.ub = None 
-		self.image = im # image
+		self.ub = None
 		self.r = r # zoom radius
 
 		# artist's canvas
@@ -58,6 +68,22 @@ class Repr() :
 		# translate the trajectory by the offset, if any
 		self.trajectory.translate( self.offset ) 
 
+		# initiate the new image, if needed
+
+		if self.path_movies : 
+			
+			im_name = self.trajectory.annotations()[ 'dataset' ][ 5 : -4 ] + '.tif'
+		
+			if self.im_name != im_name:
+	
+				print( '-- loading new movie ' + str( im_name ) )
+				self.im_name = im_name
+				self.image = tiff.imread( self.path_movies + '/' + self.im_name )
+
+		else :
+			
+			self.image = tiff.imread( self.im_name )
+
 		# initiate fmin and fmax
 		self.fmin = np.nanmin( self.trajectory.frames() )
 		self.fmax = np.nanmax( self.trajectory.frames() )
@@ -70,8 +96,7 @@ class Repr() :
 		# define the lower and upper boundary of the Representation 
 		self.lb = max( 0 , self.fmin - self.bff )						# lower boundary
 		self.ub = min( self.fmax + self.bff , self.image.shape[ 0 ] )	# upper boundary
-			
-
+		
 	def df( self , d ) : # increment frames by d
 	
 		c = [ np.nan , np.nan ] # initiate a nan centroid coordinate
@@ -187,17 +212,6 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	- coord_unit is pixel ('pxl') as default. 
 	To do not bias the experimenter the trajectory position within the cell is not shown (compatibly with "r").
 	"""
-
-	def LoadMovie( path_movies , path_movie , t ) : 
-		
-		if path_movies : 
-	
-			movie_name = t.annotations()[ 'dataset' ][ 5 : -4 ] + movie_appendix 
-			return tiff.imread( path_movies + '/' + movie_name )
-
-		else : 
-
-			return tiff.imread( path_movie )
 
 	def LeftKey( event , frame , increment , ax ) :
 	
@@ -386,8 +400,9 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 
 	SpotWindow = tk.Tk()
 	SpotWindow.wm_title( 'icheck' )
-
-	frm = Repr( tt , 0 , r , LoadMovie( path_movies , path_movie , tt[ 0 ] ) , master = SpotWindow , cmap = cmap , buffer_frames = buffer_frames , offset = offset , marker = marker , markersize = markersize )
+	
+	frm = Repr( tt , 0 , r , path_movies = path_movies , path_movie = path_movie , master = SpotWindow , cmap = cmap , buffer_frames = buffer_frames , offset = offset , marker = marker , markersize = markersize )
+	
 	frm.initiate()
 
 	ax = frm.render()
