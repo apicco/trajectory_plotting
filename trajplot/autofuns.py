@@ -164,7 +164,7 @@ class Repr() :
 				)											
 		
 		# plot centroid
-		axcentroid = plt.plot( self.centroid()[ 0 ] - self.lims()[ 'xlims' ][ 0 ] , self.centroid()[ 1 ] - self.lims()[ 'ylims' ][ 0 ] , marker = self.marker , markersize = self.markersize , color = 'red' ) 
+		axcentroid = plt.plot( self.centroid()[ 0 ] - self.lims()[ 'xlims' ][ 0 ] , self.centroid()[ 1 ] - self.lims()[ 'ylims' ][ 0 ] , marker = self.marker , markersize = self.markersize , color = 'red' , markerfacecolor = 'none') 
 		
 		# graphical parameters
 		plt.xlabel( "Pixels" )
