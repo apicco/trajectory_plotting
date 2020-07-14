@@ -115,9 +115,14 @@ class Repr() :
 				self.f = self.f + d
 				c = self.centroid()
 
-			else :
+			elif ( self.f + d < self.lb ) :
 				
-				self.f = old_frame
+				self.f = self.lb 
+				break
+
+			elif ( self.f + d > self.ub ) :
+				
+				self.f = self.ub 
 				break
 
 	def zoom( self , r ) :
@@ -342,6 +347,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	header = "Welcome to icheck! You are going to asses the quality \n of the spots used to derive the trajectory list input\n" \
 			+ "COMMANDS:\n" + \
 			"- <Left> and <Right> arrows navigate you within the spot frames\n" + \
+			"- <Shift-Left> and <Shift-Right> arrows navigate you within the spot frames by increments of 10 frames\n" + \
 			"- the <Up> arrow annotates the trajectory as 'Selected' and saves it in\n" + path_output + "/Selected/\n" +\
 			"- the <Down> arrow annotates the trajectory as 'Rejected' and saves it in\n" + path_output + "/Rejected/\n" +\
 			"- the <BackSpace> undo the last selection/rejection and annotate the log\n" +\
@@ -411,7 +417,9 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 
 	# bind command controls to the SpotWindow
 	SpotWindow.bind( "<Left>" , lambda event , frame = frm , increment = -1 , ax = ax : LeftKey( event , frame , increment , ax ) )
+	SpotWindow.bind( "<Shift-Left>" , lambda event , frame = frm , increment = -10 , ax = ax : LeftKey( event , frame , increment , ax ) )
 	SpotWindow.bind( "<Right>" , lambda event , frame = frm , increment = 1 , ax = ax : RightKey( event , frame , increment , ax ) )
+	SpotWindow.bind( "<Shift-Right>" , lambda event , frame = frm , increment = 10 , ax = ax : RightKey( event , frame , increment , ax ) )
 	SpotWindow.bind( "<Up>" , lambda event , frame = frm , path = ps , f = f , ax = ax : UpKey( event , frame , path , f , ax ) )
 	SpotWindow.bind( "<Down>" , lambda event , frame = frm , path = pr , f = f , ax = ax : DownKey( event , frame , path , f , ax ) )
 	SpotWindow.bind( "<BackSpace>" , lambda event , frame = frm , path_sel = ps , path_rej = pr , ax = ax : BackKey( event , frame , path_sel , path_rej , ax ) )
