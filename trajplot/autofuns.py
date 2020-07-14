@@ -14,7 +14,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # DEFINE THE OBJECT Repr
 class Repr() :
 
-	def __init__( self , trajlist , j , r , master , cmap , buffer_frames , offset , marker , markersize  , path_movie = '' , path_movies = '' ) :
+	def __init__( self , trajlist , j , r , master , cmap , buffer_frames , offset , marker , markersize , saturation,  path_movie = '' , path_movies = '' ) :
 	
 		# trajectory data
 		self.tlist = trajlist
@@ -51,7 +51,8 @@ class Repr() :
 
 		# plotting parameters
 		self.marker = marker
-		self.markersize = markersize 
+		self.markersize = markersize
+		self.saturation = saturation
 
 	def initiate( self , j = None ) :
 
@@ -159,7 +160,7 @@ class Repr() :
 		# in order to navigate faster within the frames
 		aximg = plt.imshow( 
 				img ,
-				norm = norm( vmin = np.amin( self.image ) , vmax = np.amax( self.image ) ) , # intensity normalization
+				norm = norm( vmin = np.amin( self.image ) , vmax = ( np.amax( self.image ) - self.saturation * (np.amax( self.image ) - np.amin( self.image )) ) ) , # intensity normalization
 				cmap = self.cmap
 				)											
 		
@@ -194,7 +195,7 @@ class Repr() :
 
 # -----------------------------------------------------
 # DEFINE THE FUNCTION ICHECK WHICH USES THE OBJECT Repr
-def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' , marker = 's' , markersize = 25 , buffer_frames = 0 , offset = ( 0 , 0 ) , movie_appendix = '.tif' ) :
+def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' , marker = 's' , markersize = 25 , buffer_frames = 0 , offset = ( 0 , 0 ) , movie_appendix = '.tif' , saturation = 0) :
 	"""
 	icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' ) :
 		load the trajectories in path_trajectories 
@@ -401,7 +402,7 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	SpotWindow = tk.Tk()
 	SpotWindow.wm_title( 'icheck' )
 	
-	frm = Repr( tt , 0 , r , path_movies = path_movies , path_movie = path_movie , master = SpotWindow , cmap = cmap , buffer_frames = buffer_frames , offset = offset , marker = marker , markersize = markersize )
+	frm = Repr( tt , 0 , r , path_movies = path_movies , path_movie = path_movie , master = SpotWindow , cmap = cmap , buffer_frames = buffer_frames , offset = offset , marker = marker , markersize = markersize , saturation = saturation)
 	
 	frm.initiate()
 
