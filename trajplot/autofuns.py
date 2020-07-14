@@ -125,6 +125,15 @@ class Repr() :
 				
 				self.f = self.ub 
 				break
+	
+	def saturate( self , increment ) :
+
+		new_saturation =  self.saturation + increment
+
+		#saturation cannot exceed 0 and 1 boundaries
+		if ( ( new_saturation >= 0 ) & ( new_saturation <= 1 ) ) :
+
+			self.saturation = new_saturation
 
 	def zoom( self , r ) :
 		
@@ -165,7 +174,7 @@ class Repr() :
 		# in order to navigate faster within the frames
 		aximg = plt.imshow( 
 				img ,
-				norm = norm( vmin = np.amin( self.image ) , vmax = ( np.amax( self.image ) - self.saturation * (np.amax( self.image ) - np.amin( self.image )) ) ) , # intensity normalization
+				norm = norm( vmin = np.amin( self.image ) , vmax = ( np.amax( self.image ) - self.saturation * ( np.amax( self.image ) - np.amin( self.image )) ) ) , # intensity normalization
 				cmap = self.cmap
 				)											
 		
@@ -178,7 +187,8 @@ class Repr() :
 
 		plt.title( self.trajectory.annotations()[ 'file' ] + ' ' + '\n' + \
 				'trajectory ' + str( self.j + 1 ) + '/' + str( len( self.tlist ) ) + '; ' + 'frame ' + str( self.f - self.fmin ) + '/' + str( self.fmax - self.fmin ) + '; ' + \
-				r'$r=$' + str( self.r ) )
+				r'$r=$' + str( self.r ) + '; ' + \
+				r'$s=$' + str( round( self.saturation , 2 ) ) )
 		
 		self.canvas.draw()
 		
@@ -194,13 +204,14 @@ class Repr() :
 		
 		plt.title( self.trajectory.annotations()[ 'file' ] + ' ' + '\n' + \
 				'trajectory ' + str( self.j + 1 ) + '/' + str( len( self.tlist ) ) + '; ' + 'frame ' + str( self.f - self.fmin ) + '/' + str( self.fmax - self.fmin ) + '; ' + \
-				r'$r=$' + str( self.r ) )
+				r'$r=$' + str( self.r ) + '; ' + \
+				r'$s=$' + str( round( self.saturation , 2 ) ) )
 			
 		self.canvas.draw()
 
 # -----------------------------------------------------
 # DEFINE THE FUNCTION ICHECK WHICH USES THE OBJECT Repr
-def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' , marker = 's' , markersize = 25 , buffer_frames = 0 , offset = ( 0 , 0 ) , movie_appendix = '.tif' , saturation = 0) :
+def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' , path_output = './' , marker = 's' , markersize = 25 , buffer_frames = 0 , offset = ( 0 , 0 ) , movie_appendix = '.tif' , saturation = 0 ) :
 	"""
 	icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7 , cmap = 'gray' ) :
 		load the trajectories in path_trajectories 
@@ -219,17 +230,21 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	To do not bias the experimenter the trajectory position within the cell is not shown (compatibly with "r").
 	"""
 
-	def LeftKey( event , frame , increment , ax ) :
-	
-		frame.df( increment ) #frame increment to the left in case of nan
-		frame.update( ax )
-
-	def RightKey( event , frame , increment , ax ) :
+	def ArrowKey( event , frame , increment , ax ) :
 
 		frame.df( increment ) 
 		frame.update( ax )
 		
-		frm.canvas.get_tk_widget().pack( side = tk . TOP , fill=tk.BOTH , expand = 1 )
+		#frm.canvas.get_tk_widget().pack( side = tk . TOP , fill=tk.BOTH , expand = 1 )
+
+	def SaturateKey( event , frame , increment , ax ) :
+
+		frame.clear()
+		frame.saturate( increment )
+
+		new_ax = frame.render()
+		ax[ 0 ] = new_ax[ 0 ]
+		ax[ 1 ] = new_ax[ 1 ]
 
 	def ZoomOut( event , frame , increment , ax ) :
 	 
@@ -348,11 +363,12 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	header = "Welcome to icheck! You are going to asses the quality \n of the spots used to derive the trajectory list input\n" \
 			+ "COMMANDS:\n" + \
 			"- <Left> and <Right> arrows navigate you within the spot frames\n" + \
-			"- <Shift-Left> and <Shift-Right> arrows navigate you within the spot frames by increments of 10 frames\n" + \
+			"- <Shift-Left> and <Shift-Right> arrows navigate you within the spot frames \n" +"by increments of 10 frames\n" + \
 			"- the <Up> arrow annotates the trajectory as 'Selected' and saves it in\n" + path_output + "/Selected/\n" +\
 			"- the <Down> arrow annotates the trajectory as 'Rejected' and saves it in\n" + path_output + "/Rejected/\n" +\
 			"- the <BackSpace> undo the last selection/rejection and annotate the log\n" +\
-			"- the <+> and <-> zoom in and out the image\n\n" +\
+			"- the <+> and <-> zoom in and out the image\n" +\
+			"- the <s> and <d> increase and decrease the image saturation\n" +"Saturation is shown as parameter " +r"s in [0,1)" + " in plot title\n\n" +\
 			"-> NOTE THAT iCheck USES THE CONVENTION img[ z , y , x ]!  <-\n" +\
 			"->     For example, you will need to swap x and y coordinates     <-\n" +\
 			"->     if you use an old version of ParticleTracker.                        <-\n\n"
@@ -417,14 +433,16 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 	frm.canvas.get_tk_widget().pack( side = tk . TOP , fill=tk.BOTH , expand = 1 )
 
 	# bind command controls to the SpotWindow
-	SpotWindow.bind( "<Left>" , lambda event , frame = frm , increment = -1 , ax = ax : LeftKey( event , frame , increment , ax ) )
-	SpotWindow.bind( "<Shift-Left>" , lambda event , frame = frm , increment = -10 , ax = ax : LeftKey( event , frame , increment , ax ) )
-	SpotWindow.bind( "<Right>" , lambda event , frame = frm , increment = 1 , ax = ax : RightKey( event , frame , increment , ax ) )
-	SpotWindow.bind( "<Shift-Right>" , lambda event , frame = frm , increment = 10 , ax = ax : RightKey( event , frame , increment , ax ) )
+	SpotWindow.bind( "<Left>" , lambda event , frame = frm , increment = -1 , ax = ax : ArrowKey( event , frame , increment , ax ) )
+	SpotWindow.bind( "<Shift-Left>" , lambda event , frame = frm , increment = -10 , ax = ax : ArrowKey( event , frame , increment , ax ) )
+	SpotWindow.bind( "<Right>" , lambda event , frame = frm , increment = 1 , ax = ax : ArrowKey( event , frame , increment , ax ) )
+	SpotWindow.bind( "<Shift-Right>" , lambda event , frame = frm , increment = 10 , ax = ax : ArrowKey( event , frame , increment , ax ) )
 	SpotWindow.bind( "<Up>" , lambda event , frame = frm , path = ps , f = f , ax = ax : UpKey( event , frame , path , f , ax ) )
 	SpotWindow.bind( "<Down>" , lambda event , frame = frm , path = pr , f = f , ax = ax : DownKey( event , frame , path , f , ax ) )
 	SpotWindow.bind( "<BackSpace>" , lambda event , frame = frm , path_sel = ps , path_rej = pr , ax = ax : BackKey( event , frame , path_sel , path_rej , ax ) )
 	SpotWindow.bind( "-" , lambda event , frame = frm , increment = 1 , ax = ax : ZoomOut( event , frame , increment , ax ) )
 	SpotWindow.bind( "+" , lambda event , frame = frm , increment = -1 , ax = ax : ZoomIn( event , frame , increment , ax ) )
+	SpotWindow.bind( "<s>" , lambda event , frame = frm , increment = 0.05 , ax = ax : SaturateKey( event , frame , increment , ax ) )
+	SpotWindow.bind( "<d>" , lambda event , frame = frm , increment = -0.05 , ax = ax : SaturateKey( event , frame , increment , ax ) )
 	
 	SpotWindow.mainloop()
