@@ -403,8 +403,13 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 
 		print( 'assigning dataset ID... this might take some time, be patient' )
 		
+		if path_datasets == '' :
+
+			raise AttributeError( 'in icheck, path_datasets should not be empty. Please, assign a dataset path' )
+
 		for i in range( len( tt ) ) :
 			
+			print( path_datasets )
 			if 'dataset' not in tt[ i ].annotations().keys() :
 				tt[ i ].assign_datasetID( path_datasets )
 				tt[ i ].save( pd + '/' + tt[ i ].annotations()[ 'file' ] )
