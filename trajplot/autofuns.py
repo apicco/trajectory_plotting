@@ -409,7 +409,6 @@ def icheck( tt , path_movies = '' , path_datasets = '' , path_movie = '' , r = 7
 
 		for i in range( len( tt ) ) :
 			
-			print( path_datasets )
 			if 'dataset' not in tt[ i ].annotations().keys() :
 				tt[ i ].assign_datasetID( path_datasets )
 				tt[ i ].save( pd + '/' + tt[ i ].annotations()[ 'file' ] )
