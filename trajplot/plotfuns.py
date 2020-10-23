@@ -19,9 +19,10 @@ def get_values_from_track( t , what , x0 , x_scale , which_coord ) :
 
 		#then the attribute has more than one dimention, which means it is coord and we are interested
 		#only in which_coord.
+		
 		x = ( x[ which_coord ] - x0 ) * x_scale
 		x_err = x_err[ which_coord ] * x_scale
-	
+
 	else :
 
 		x = ( x - x0 ) * x_scale
@@ -82,6 +83,25 @@ def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 ,
 	obj.plot( tt.t() - t0 , x - 1.96 * x_err , linewidth = fg_lw * 0.5 , linestyle = ( 0 , ( 5 , 5 ) ) , color = col )
 	
 def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , average_trajectory = None , l_col = "#000000" , d_col = "#FF0000" , lw = 2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_average_trajectory = True , flip_around = False , unify_start_end = True , trajectory_number_in_legend = False ) :
+
+	# if x0 is nan and there is an average trajectroy,
+	# then define x0 as the x[0] of the average trajectory
+	if x0 != x0 : # if x0 is not a number, estimate if from the average trajectory start position
+	
+		if average_trajectory :
+			
+			tx = cp.deepcopy( average_trajectory ) 
+		
+			if unify_start_end :
+		
+				tx.start( unified_start( tx ) )
+				tx.end( unified_end( tx ) )
+	
+			x0 = tx.coord()[ which_coord ][ 0 ]
+
+		else :
+
+			raise AttributeError( 'plat_raw error: You need and average trajectory to estimate a x0, if x0 input was set to nan' )
 
 	if len( label ) == 0 :
 
