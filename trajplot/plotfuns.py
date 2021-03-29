@@ -61,7 +61,7 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 	#plot the trajectory
 	obj.plot( t.t() - t0 , x , linewidth = lw , linestyle = ls , color = col , label = label )
 
-def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , fg_lw = 1.5 , which_coord = 0 , unify_start_end = True ) :
+def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , fg_lw = 1.5 , which_coord = 0 , unify_start_end = True , norm_f = True ) :
 
 	tt = cp.deepcopy( t ) 
 	bg_lw = fg_lw * 1.5
@@ -70,6 +70,10 @@ def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 ,
 
 		tt.start( unified_start( t ) )
 		tt.end( unified_end( t ) )
+
+	if norm_f :
+
+		tt.norm_f()
 
 	x , x_err = get_values_from_track( tt , what , x0 , x_scale , which_coord )
 
@@ -82,7 +86,7 @@ def plot_average( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 ,
 	obj.plot( tt.t() - t0 , x - 1.96 * x_err , linewidth = bg_lw * 0.5 , color = "#000000" )
 	obj.plot( tt.t() - t0 , x - 1.96 * x_err , linewidth = fg_lw * 0.5 , linestyle = ( 0 , ( 5 , 5 ) ) , color = col )
 	
-def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , average_trajectory = None , l_col = "#000000" , d_col = "#FF0000" , lw = 2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_average_trajectory = True , flip_around = False , unify_start_end = True , trajectory_number_in_legend = False ) :
+def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x_scale = 1 , average_trajectory = None , l_col = "#000000" , d_col = "#FF0000" , lw = 2 , ls = '-' , ls_err = ':' , l_alpha = 1 , d_alpha = 0.15 , plot_average_trajectory = True , flip_around = False , unify_start_end = True , trajectory_number_in_legend = False , norm_f = True ) :
 
 	# if x0 is nan and there is an average trajectroy,
 	# then define x0 as the x[0] of the average trajectory
@@ -214,7 +218,7 @@ def plot_raw( obj , path , what , label , which_coord = 0 , x0 = 0 , t0 = 0 ,  x
 
 	if ( average_trajectory != None ) & plot_average_trajectory :
 
-		plot_average( obj , average_trajectory , what=what , label=label_average + "average" , col=l_col , x0=x0 , t0=t0 , x_scale=x_scale , which_coord=which_coord , fg_lw = lw , unify_start_end = unify_start_end )
+		plot_average( obj , average_trajectory , what=what , label=label_average + "average" , col=l_col , x0=x0 , t0=t0 , x_scale=x_scale , which_coord=which_coord , fg_lw = lw , unify_start_end = unify_start_end , norm_f = norm_f )
 
 def trajectories_on_movie( movie_path , output_path , tls , cmaps , scale = np.nan , scale_unit = '' , shift = [ 0 , 0 ] , figsize = ( 10, 8 ) , movie_cmap = 'gray' , marker_size = 3 , line_width = 1 ) : # tls = trajectory_lists , cmaps = colormaps )
 	
