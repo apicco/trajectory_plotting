@@ -3,7 +3,7 @@ import tkinter as tk
 import numpy as np
 from matplotlib.colors import Normalize as norm
 import matplotlib.pyplot as plt
-from skimage.external import tifffile as tiff
+import tifffile as tiff
 from trajalign.traj import Traj
 from trajalign.average import load_directory
 
