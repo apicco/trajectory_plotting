@@ -4,7 +4,7 @@ from numpy import transpose, concatenate
 from matplotlib.patches import Polygon
 from matplotlib import pyplot as plt
 from matplotlib import cm
-from skimage.external import tifffile as tiff
+import tifffile as tiff
 import numpy as np
 import os
 import re
