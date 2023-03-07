@@ -46,8 +46,8 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 
 	if unify_start_end :
 
-		t.start( unified_start( t ) , add_CI = add_CI )
-		t.end( unified_end( t ) , add_CI = add_CI )
+		t.start( unified_start( t , add_CI = add_CI ) )
+		t.end( unified_end( t , add_CI = add_CI ) )
 
 	x , x_err = get_values_from_track( t , what , x0 , x_scale , which_coord )
 
