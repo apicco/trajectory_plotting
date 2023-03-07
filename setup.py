@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup( name = 'trajectory plotting' ,
-		version = '0.2' ,
+		version = '0.3' ,
 		description = 'Utilities to plot Trajalign trajectories' ,
 		author = 'Andrea Picco',
 		author_email = 'andrea.picco@unige.ch',
