@@ -30,7 +30,7 @@ def get_values_from_track( t , what , x0 , x_scale , which_coord ) :
 
 	return x , x_err 
 
-def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 1.5 , ls = '-' , which_coord = 0 , unify_start_end = True ) :
+def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 1.5 , ls = '-' , which_coord = 0 , unify_start_end = True , 95CI = True ) :
 
 	"""
 	myplot( obj , t , what , label , col , lw = 1.5 , ls = '-' ) : plots
@@ -46,8 +46,8 @@ def myplot( obj , t , what , label , col , x0 = 0 , t0 = 0 , x_scale = 1 , lw = 
 
 	if unify_start_end :
 
-		t.start( unified_start( t ) )
-		t.end( unified_end( t ) )
+		t.start( unified_start( t ) , 95CI = 95CI )
+		t.end( unified_end( t ) , 95CI = 95CI )
 
 	x , x_err = get_values_from_track( t , what , x0 , x_scale , which_coord )
 

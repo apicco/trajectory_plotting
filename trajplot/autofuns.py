@@ -180,7 +180,6 @@ class Repr() :
 		
 		# plot centroid
 		axcentroid = plt.plot( self.centroid()[ 0 ] - self.lims()[ 'xlims' ][ 0 ] , self.centroid()[ 1 ] - self.lims()[ 'ylims' ][ 0 ] , marker = self.marker , markersize = self.markersize , color = 'red' , markerfacecolor = 'none') 
-		
 		# graphical parameters
 		plt.xlabel( "Pixels" )
 		plt.ylabel( "Pixels" )
@@ -189,8 +188,6 @@ class Repr() :
 				'trajectory ' + str( self.j + 1 ) + '/' + str( len( self.tlist ) ) + '; ' + 'frame ' + str( self.f - self.fmin ) + '/' + str( self.fmax - self.fmin ) + '; ' + \
 				r'$r=$' + str( self.r ) + '; ' + \
 				r'$s=$' + str( round( self.saturation , 2 ) ) )
-		
-		self.canvas.draw()
 		
 		return [ aximg , axcentroid[ 0 ] ]
 
